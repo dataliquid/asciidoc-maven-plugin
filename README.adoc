@@ -1,5 +1,11 @@
 = AsciiDoc Maven Plugin
 
+image:https://github.com/dataliquid/asciidoc-maven-plugin/actions/workflows/ci.yml/badge.svg[CI Build,link=https://github.com/dataliquid/asciidoc-maven-plugin/actions/workflows/ci.yml]
+image:https://maven-badges.herokuapp.com/maven-central/com.dataliquid.maven/asciidoc-maven-plugin/badge.svg[Maven Central,link=https://maven-badges.herokuapp.com/maven-central/com.dataliquid.maven/asciidoc-maven-plugin]
+image:https://img.shields.io/badge/license-Apache%202.0-blue.svg[License,link=https://opensource.org/licenses/Apache-2.0]
+image:https://img.shields.io/badge/Java-17%2B-blue.svg[Java Version]
+image:https://img.shields.io/badge/Maven-3.9%2B-blue.svg[Maven Version]
+
 A Maven plugin for processing AsciiDoc files with advanced features.
 
 == Overview
