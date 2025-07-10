@@ -1,0 +1,4 @@
+= Test Document
+:author: Test Author
+
+This test verifies that output and work directories are created automatically.

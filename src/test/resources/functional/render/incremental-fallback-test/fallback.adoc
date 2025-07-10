@@ -1,0 +1,4 @@
+= Fallback Test
+:author: Test Author
+
+This tests incremental build fallback when cache fails.

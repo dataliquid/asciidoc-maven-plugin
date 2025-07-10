@@ -1,0 +1,21 @@
+= Template Test
+:author: Test Author
+
+This is a paragraph that should be rendered with a custom template.
+
+Another paragraph to demonstrate the custom rendering.
+
+.Sample Table
+|===
+| Column 1 | Column 2 | Column 3
+
+| Row 1, Cell 1
+| Row 1, Cell 2
+| Row 1, Cell 3
+
+| Row 2, Cell 1
+| Row 2, Cell 2
+| Row 2, Cell 3
+|===
+
+Final paragraph after the table.

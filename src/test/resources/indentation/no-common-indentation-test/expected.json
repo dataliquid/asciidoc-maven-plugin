@@ -1,0 +1,8 @@
+{
+  "config": {
+    "debug": true
+  },
+    "settings": {
+      "timeout": 5000
+    }
+}

@@ -1,0 +1,9 @@
+      {
+        "api": {
+          "version": "v1",
+          "endpoints": [
+            "/users",
+            "/posts"
+          ]
+        }
+      }

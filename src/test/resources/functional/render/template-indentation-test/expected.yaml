@@ -1,0 +1,27 @@
+page:
+  id: ''
+  title: 'Test Document with Indentation'
+  metadata:
+    author: 'Unknown'
+    created: 'N/A'
+  content:
+    html: |
+      <div id="preamble">
+      <div class="sectionbody">
+      <div class="paragraph">
+      <p>This is a test document for indented template processing.</p>
+      </div>
+      </div>
+      </div>
+      <div class="sect1">
+      <h2 id="_section_1">Section 1</h2>
+      <div class="sectionbody">
+      <div class="paragraph">
+      <p>Some content here.</p>
+      </div>
+      </div>
+      </div>
+  nested:
+    level1:
+      level2:
+        value: 'deep'

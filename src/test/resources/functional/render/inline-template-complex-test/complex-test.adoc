@@ -1,0 +1,26 @@
+---
+author: Jane Developer
+category: Technical Documentation
+---
+= Complex Template Test Document
+:doctype: article
+
+== Overview
+
+This document demonstrates a complex inline template with:
+
+* Conditional rendering based on attributes
+* Front matter metadata access
+* File metadata display
+
+=== Technical Details
+
+The template uses conditionals to:
+
+. Check for author in front matter
+. Display version from attributes
+. Show source file metadata
+
+== Implementation
+
+The complex template provides a full HTML structure with dynamic content based on document metadata.

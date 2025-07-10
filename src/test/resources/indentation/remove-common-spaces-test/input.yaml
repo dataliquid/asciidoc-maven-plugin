@@ -1,0 +1,9 @@
+    server:
+      host: localhost
+      port: 8080
+      timeout: 30
+    database:
+      name: testdb
+      connection:
+        pool: 10
+        timeout: 5000

@@ -1,0 +1,4 @@
+= Document
+:keywords: This is a very long keywords list that exceeds the maximum allowed
+
+Content here.

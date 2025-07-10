@@ -1,0 +1,4 @@
+= Document with Error
+:author: Error Test
+
+This document will trigger a template error.

@@ -1,0 +1,8 @@
+		{
+			"name": "test-project",
+			"version": "1.0.0",
+			"dependencies": {
+				"library1": "^2.0.0",
+				"library2": "~3.1.0"
+			}
+		}

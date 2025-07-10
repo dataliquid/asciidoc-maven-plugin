@@ -1,0 +1,4 @@
+= Error
+:author: Test Author
+
+This will fail.

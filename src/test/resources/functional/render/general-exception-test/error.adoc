@@ -1,0 +1,4 @@
+= Error Test
+:author: Test Author
+
+This tests general exception handling.

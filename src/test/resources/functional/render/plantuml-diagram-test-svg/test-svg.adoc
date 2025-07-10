@@ -1,0 +1,24 @@
+= SVG Diagram Test Document
+:icons: font
+
+This document tests SVG diagram rendering with embedded output.
+
+== PlantUML Diagram as SVG
+
+Here's a PlantUML diagram that should be embedded as SVG directly in the HTML:
+
+[plantuml, embedded-svg-diagram, svg, width=294, height=223]
+----
+@startuml
+skinparam dpi 96
+skinparam backgroundcolor transparent
+!theme plain
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: Another authentication Response
+@enduml
+----
+
+The diagram above should be rendered as inline SVG.

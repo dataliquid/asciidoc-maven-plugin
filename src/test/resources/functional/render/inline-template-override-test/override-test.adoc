@@ -1,0 +1,6 @@
+= Template Override Test
+:author: Test Author
+
+This document tests that inline templates take precedence over file templates.
+
+When both `jteTemplate` and `jteTemplateFile` are configured, the inline template should be used.

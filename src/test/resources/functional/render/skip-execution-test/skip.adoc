@@ -1,0 +1,4 @@
+= Skip Test
+:author: Test Author
+
+This file should not be processed when skip is true.
