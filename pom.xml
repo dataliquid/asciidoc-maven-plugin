@@ -35,7 +35,7 @@
         <maven.version>3.9.6</maven.version>
         <asciidoctorj.version>2.5.7</asciidoctorj.version>
         <asciidoctorj.diagram.version>2.2.8</asciidoctorj.diagram.version>
-        <jackson.version>2.17.0</jackson.version>
+        <jackson.version>2.19.1</jackson.version>
         <maven.plugin.tools.version>3.11.0</maven.plugin.tools.version>
     </properties>
 
