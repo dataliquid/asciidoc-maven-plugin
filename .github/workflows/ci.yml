@@ -24,13 +24,13 @@ jobs:
         cache: maven
     
     - name: Build with Maven
-      run: mvn -ntp clean compile
+      run: mvn -ntp -Dgpg.skip=true clean compile
     
     - name: Run tests
-      run: mvn -ntp test
+      run: mvn -ntp -Dgpg.skip=true test
     
     - name: Package
-      run: mvn -ntp package
+      run: mvn -ntp -Dgpg.skip=true package
     
     - name: Install plugin locally
-      run: mvn -ntp install
+      run: mvn -ntp -Dgpg.skip=true install
