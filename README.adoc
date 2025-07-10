@@ -1,0 +1,118 @@
+= AsciiDoc Maven Plugin
+
+A Maven plugin for processing AsciiDoc files with advanced features.
+
+== Overview
+
+[cols="1,3"]
+|===
+|Group ID |`com.dataliquid.maven`
+|Artifact ID |`asciidoc-maven-plugin`
+|Version |`0.1.0-SNAPSHOT`
+|License |Apache License 2.0
+|Requirements |Java 17+, Maven 3.6+
+|===
+
+== Features
+
+* *AsciidoctorJ* - Full AsciiDoc to HTML rendering
+* *Incremental builds* - SHA-256 based change detection
+* *Diagram support* - PlantUML, Ditaa, Graphviz (SVG/PNG)
+* *YAML front matter* - Metadata extraction and validation
+* *StringTemplate4* - Custom templating support
+* *AsciiDoc linting* - Comprehensive validation with asciidoc-linter
+
+== Goals
+
+[cols="1,3"]
+|===
+|Goal |Description
+
+|`render`
+|Convert AsciiDoc files to HTML with template support
+
+|`validate`
+|Validate YAML front matter against JSON schema
+
+|`lint`
+|Comprehensive AsciiDoc validation and style checking
+|===
+
+== Quick Start
+
+[source,xml]
+----
+<plugin>
+    <groupId>com.dataliquid.maven</groupId>
+    <artifactId>asciidoc-maven-plugin</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <executions>
+        <execution>
+            <id>generate-docs</id>
+            <phase>generate-resources</phase>
+            <goals>
+                <goal>render</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+----
+
+== Key Parameters
+
+[cols="2,1,2,3"]
+|===
+|Parameter |Type |Default |Description
+
+|`sourceDirectory`
+|File
+|`src/docs/asciidoc`
+|Input directory for AsciiDoc files
+
+|`outputDirectory`
+|File
+|`target/generated-docs`
+|Output directory for HTML files
+
+|`includes`
+|String[]
+|`**/*.adoc`
+|Ant-style include patterns
+
+|`enableDiagrams`
+|boolean
+|`true`
+|Enable diagram rendering
+
+|`enableIncremental`
+|boolean
+|`true`
+|Enable incremental builds
+
+|`ruleFile`
+|File
+|_required for lint_
+|YAML configuration for linter rules
+|===
+
+== Front Matter Example
+
+[source,asciidoc]
+----
+---
+title: My Document
+author: John Doe
+version: 0.1.0
+tags: [documentation, guide]
+---
+= My Document
+
+Document content...
+----
+
+== Build
+
+[source,bash]
+----
+mvn clean install
+----

@@ -1,0 +1,9 @@
+Template error context in inline-template:
+  1     page:
+  2       id: '$frontMatter.identifier$'
+  3       title: '$if(attributes.doctitle)$$attributes.doctitle$$else$Untitled$endif$'
+  4 >>>   error: '$attributes.nonExistent.deepProperty$'
+                  ^ Error here
+  5       content:
+  6         html: |
+  7           $html$

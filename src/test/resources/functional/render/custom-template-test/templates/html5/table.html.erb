@@ -1,0 +1,25 @@
+<div class="custom-table-wrapper">
+  <table class="custom-table">
+    <% if title? %>
+      <caption class="custom-caption"><%= captioned_title %></caption>
+    <% end %>
+    <% if (attr? :rowcount) && (attr :rowcount).to_i > 0 %>
+      <thead>
+        <tr>
+          <% rows.head.first.each do |cell| %>
+            <th class="custom-header"><%= cell.text %></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.body.each do |row| %>
+          <tr>
+            <% row.each do |cell| %>
+              <td class="custom-cell"><%= cell.text %></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    <% end %>
+  </table>
+</div>

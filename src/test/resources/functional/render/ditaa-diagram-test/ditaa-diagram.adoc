@@ -1,0 +1,23 @@
+= Ditaa Diagram Test
+:author: Test Author
+
+This document contains a Ditaa diagram.
+
+[ditaa, network-diagram, png]
+----
+    +----------+     +----------+
+    |          |     |          |
+    | Client   |---->| Server   |
+    | cYEL     |     | cBLU     |
+    |          |<----+          |
+    +----------+     +----------+
+         |                |
+         |                |
+         v                v
+    +----------+     +----------+
+    | Storage  |     | Database |
+    | cGRE     |     | cRED     |
+    +----------+     +----------+
+----
+
+The diagram shows a simple network architecture.

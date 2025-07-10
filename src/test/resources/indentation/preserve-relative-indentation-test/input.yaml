@@ -1,0 +1,8 @@
+      root:
+        level1:
+          item1: value1
+          item2: value2
+            nested:
+              deep: value
+        level2:
+          another: test

@@ -1,0 +1,18 @@
+= Inline Template Test Document
+:doctype: article
+
+== Introduction
+
+This document tests the inline template functionality.
+
+The inline template should wrap this content in a custom HTML structure.
+
+=== Features
+
+* Custom title format
+* Inline template wrapper div
+* Custom footer text
+
+== Conclusion
+
+This content should be rendered using the inline template defined in the test.

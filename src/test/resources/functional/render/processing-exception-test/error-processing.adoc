@@ -1,0 +1,4 @@
+= Error Test
+:author: Test Author
+
+This file will cause a processing error.

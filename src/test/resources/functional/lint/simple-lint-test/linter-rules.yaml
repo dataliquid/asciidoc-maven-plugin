@@ -1,0 +1,7 @@
+document:
+  metadata:
+    attributes:
+      - name: keywords
+        required: true
+        maxLength: 20
+        severity: error

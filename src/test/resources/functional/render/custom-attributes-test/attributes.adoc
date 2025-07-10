@@ -1,0 +1,15 @@
+= Attributes Test
+:author: Test Author
+:toc: left
+:source-highlighter: coderay
+
+This document tests custom attributes.
+
+[source,java]
+----
+public class Test {
+    public static void main(String[] args) {
+        System.out.println("Hello World");
+    }
+}
+----

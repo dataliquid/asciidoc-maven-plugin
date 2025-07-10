@@ -1,0 +1,14 @@
+= Diagram Test
+:author: Test Author
+
+This document contains a PlantUML diagram.
+
+[plantuml, sequence-diagram, png, width=106, height=159]
+----
+@startuml
+skinparam dpi 96
+skinparam backgroundcolor transparent
+Bob -> Alice : hello
+Alice -> Bob : hi
+@enduml
+----

@@ -1,0 +1,8 @@
+= Test Document with Indentation
+:author: Test Author
+
+This is a test document for indented template processing.
+
+== Section 1
+
+Some content here.
