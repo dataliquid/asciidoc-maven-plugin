@@ -1,0 +1,16 @@
+---
+title: Test Document
+author: Test Author
+version: 1.0
+tags:
+  - test
+  - validation
+
+---
+= Document with Frontmatter
+
+This is a test document with YAML frontmatter.
+
+== Section 1
+
+Some content here.

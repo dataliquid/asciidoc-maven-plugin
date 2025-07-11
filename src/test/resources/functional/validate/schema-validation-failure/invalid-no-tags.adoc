@@ -1,0 +1,8 @@
+---
+title: Document Without Tags
+author: Test Author
+version: 1.0
+---
+= Invalid Document - No Tags
+
+This document has frontmatter but is missing the required tags field.

@@ -154,6 +154,13 @@
             <artifactId>ST4</artifactId>
             <version>4.3.4</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <version>1.5.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
