@@ -1,0 +1,22 @@
+{
+  "documents" : [ {
+    "path" : "document-with-frontmatter.adoc",
+    "metadata" : {
+      "_file" : "document-with-frontmatter.adoc",
+      "_title" : "Document with Frontmatter",
+      "frontmatter" : {
+        "title" : "Test Document",
+        "author" : "Test Author",
+        "version" : 1.0,
+        "tags" : [ "test", "validation" ]
+      }
+    }
+  }, {
+    "path" : "document-with-attributes.adoc",
+    "metadata" : {
+      "_file" : "document-with-attributes.adoc",
+      "_title" : "Document with Attributes"
+    }
+  } ],
+  "count" : 2
+}

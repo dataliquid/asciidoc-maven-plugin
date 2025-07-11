@@ -1,0 +1,9 @@
+---
+title: Document With Too Few Tags
+author: Test Author
+tags:
+  - only-one-tag
+---
+= Invalid Document - Too Few Tags
+
+This document has only 1 tag, but the schema requires 2-4 tags.

@@ -1,0 +1,12 @@
+= Document with Attributes
+:author: Test Author
+:version: 2.0
+:category: testing
+:status: draft
+:toc:
+
+This document uses AsciiDoc attributes instead of frontmatter.
+
+== Overview
+
+This is a document that demonstrates the use of AsciiDoc attributes.

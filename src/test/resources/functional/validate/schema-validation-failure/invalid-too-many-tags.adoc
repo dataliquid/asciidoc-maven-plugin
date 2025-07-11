@@ -1,0 +1,13 @@
+---
+title: Document With Too Many Tags
+author: Test Author
+tags:
+  - tag1
+  - tag2
+  - tag3
+  - tag4
+  - tag5
+---
+= Invalid Document - Too Many Tags
+
+This document has 5 tags, but the schema allows maximum 4 tags.
