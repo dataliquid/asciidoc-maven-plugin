@@ -154,7 +154,15 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         String content = Files.readString(adocFile);
         
         // Use AsciidoctorJ to parse the document
+        Map<String, Object> allAttributes = new HashMap<>();
+        
+        // Use temp directory for diagrams during validation to avoid polluting project
+        File tempImagesDir = new File(System.getProperty("java.io.tmpdir"), "asciidoc-validate-images");
+        tempImagesDir.mkdirs();
+        allAttributes.put("imagesoutdir", tempImagesDir.getAbsolutePath());
+        
         Attributes documentAttributes = Attributes.builder()
+                .attributes(allAttributes)
                 .skipFrontMatter(true)
                 .build();
                 
