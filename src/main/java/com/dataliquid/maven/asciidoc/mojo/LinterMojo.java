@@ -16,6 +16,15 @@ import com.dataliquid.asciidoc.linter.config.common.Severity;
 import com.dataliquid.asciidoc.linter.config.loader.ConfigurationLoader;
 import com.dataliquid.asciidoc.linter.validator.ValidationMessage;
 import com.dataliquid.asciidoc.linter.validator.ValidationResult;
+import com.dataliquid.asciidoc.linter.config.output.OutputConfiguration;
+import com.dataliquid.asciidoc.linter.config.output.OutputConfigurationLoader;
+import com.dataliquid.asciidoc.linter.config.output.OutputFormat;
+import com.dataliquid.asciidoc.linter.config.output.DisplayConfig;
+import com.dataliquid.asciidoc.linter.config.output.SuggestionsConfig;
+import com.dataliquid.asciidoc.linter.config.output.SummaryConfig;
+import com.dataliquid.asciidoc.linter.config.output.HighlightStyle;
+import com.dataliquid.maven.asciidoc.report.MavenReportFormatter;
+import com.dataliquid.maven.asciidoc.report.MavenLogWriter;
 
 /**
  * Goal to lint AsciiDoc files using asciidoc-linter.
@@ -28,6 +37,24 @@ public class LinterMojo extends AbstractAsciiDocMojo {
 
     @Parameter(property = "asciidoc.linter.failOnError", defaultValue = "true")
     private boolean failOnError;
+    
+    @Parameter(property = "asciidoc.linter.outputFormat", defaultValue = "enhanced")
+    private String outputFormat;
+    
+    @Parameter(property = "asciidoc.linter.useColors", defaultValue = "true")
+    private boolean useColors;
+    
+    @Parameter(property = "asciidoc.linter.contextLines", defaultValue = "2")
+    private int contextLines;
+    
+    @Parameter(property = "asciidoc.linter.showSuggestions", defaultValue = "true")
+    private boolean showSuggestions;
+    
+    @Parameter(property = "asciidoc.linter.highlightErrors", defaultValue = "true")
+    private boolean highlightErrors;
+    
+    @Parameter(property = "asciidoc.linter.showExamples", defaultValue = "false")
+    private boolean showExamples;
 
     @Override
     protected String getMojoName() {
@@ -51,6 +78,10 @@ public class LinterMojo extends AbstractAsciiDocMojo {
             ConfigurationLoader configLoader = new ConfigurationLoader();
             LinterConfiguration linterConfiguration = configLoader.loadConfiguration(ruleFile.toPath());
             
+            // Load or create output configuration
+            OutputConfiguration outputConfig = createOutputConfiguration();
+            MavenReportFormatter formatter = new MavenReportFormatter(outputConfig, getLog());
+            
             int totalErrors = 0;
             int totalWarnings = 0;
             
@@ -61,26 +92,17 @@ public class LinterMojo extends AbstractAsciiDocMojo {
                 try {
                     ValidationResult result = linter.validateFile(file, linterConfiguration);
                     
-                    // Process results
+                    // Process results with enhanced formatter
                     if (!result.getMessages().isEmpty()) {
-                        getLog().info("Results for: " + file);
+                        // Use the enhanced formatter for output
+                        formatter.format(result, null); // MavenReportFormatter creates its own writer
                         
+                        // Count errors and warnings
                         for (ValidationMessage validationMessage : result.getMessages()) {
-                            int lineNumber = validationMessage.getLocation() != null ? validationMessage.getLocation().getStartLine() : 0;
-                            String logMessage = String.format("[%s:%d] %s: %s", 
-                                file.getFileName(), 
-                                lineNumber, 
-                                validationMessage.getSeverity(), 
-                                validationMessage.getMessage());
-                                
                             if (validationMessage.getSeverity() == Severity.ERROR) {
-                                getLog().error(logMessage);
                                 totalErrors++;
                             } else if (validationMessage.getSeverity() == Severity.WARN) {
-                                getLog().warn(logMessage);
                                 totalWarnings++;
-                            } else {
-                                getLog().info(logMessage);
                             }
                         }
                     }
@@ -96,7 +118,10 @@ public class LinterMojo extends AbstractAsciiDocMojo {
             linter.close();
             
             // Summary
-            getLog().info("");
+            // Only add empty line for simple format (enhanced format already includes it)
+            if (!"enhanced".equals(outputFormat)) {
+                getLog().info("");
+            }
             getLog().info("Linting complete:");
             getLog().info("  Errors: " + totalErrors);
             getLog().info("  Warnings: " + totalWarnings);
@@ -109,5 +134,57 @@ public class LinterMojo extends AbstractAsciiDocMojo {
         } catch (IOException e) {
             throw new MojoExecutionException("Error executing AsciiDoc linter", e);
         }
+    }
+    
+    /**
+     * Creates the output configuration based on Maven parameters.
+     * Supports predefined formats (enhanced, simple, compact) or custom configuration.
+     */
+    private OutputConfiguration createOutputConfiguration() throws IOException {
+        OutputConfigurationLoader outputLoader = new OutputConfigurationLoader();
+        
+        // Try to load predefined format
+        try {
+            OutputFormat format = OutputFormat.valueOf(outputFormat.toUpperCase());
+            OutputConfiguration config = outputLoader.loadPredefinedConfiguration(format);
+            
+            // Override with Maven-specific settings
+            return customizeOutputConfiguration(config);
+        } catch (IllegalArgumentException e) {
+            // If not a predefined format, create custom configuration
+            return createCustomOutputConfiguration();
+        }
+    }
+    
+    /**
+     * Customizes the output configuration with Maven parameters.
+     */
+    private OutputConfiguration customizeOutputConfiguration(OutputConfiguration base) {
+        return OutputConfiguration.builder()
+            .display(DisplayConfig.builder()
+                .contextLines(contextLines)
+                .highlightStyle(highlightErrors ? HighlightStyle.UNDERLINE : HighlightStyle.NONE)
+                .useColors(useColors && MavenLogWriter.supportsAnsiColors())
+                .showLineNumbers(true)
+                .showHeader(false) // No header in Maven output
+                .build())
+            .suggestions(SuggestionsConfig.builder()
+                .enabled(showSuggestions)
+                .maxPerError(3)
+                .showExamples(showExamples)
+                .build())
+            .summary(SummaryConfig.builder()
+                .showStatistics(true)
+                .showMostCommon(true)
+                .showFileList(false) // We already show file-by-file
+                .build())
+            .build();
+    }
+    
+    /**
+     * Creates a custom output configuration from scratch.
+     */
+    private OutputConfiguration createCustomOutputConfiguration() {
+        return customizeOutputConfiguration(OutputConfiguration.builder().build());
     }
 }

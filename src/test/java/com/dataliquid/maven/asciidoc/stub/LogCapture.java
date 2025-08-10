@@ -18,7 +18,12 @@ public class LogCapture implements Log {
     }
     
     public String getCapturedOutput() {
-        return logOutput.toString();
+        String output = logOutput.toString();
+        // Remove trailing newline if present
+        if (output.endsWith("\n")) {
+            output = output.substring(0, output.length() - 1);
+        }
+        return output;
     }
     
     public void clear() {
@@ -111,21 +116,21 @@ public class LogCapture implements Log {
     
     @Override
     public void error(CharSequence content) { 
-        logOutput.append(content).append("\n");
+        logOutput.append("[ERROR] ").append(content).append("\n");
     }
     
     @Override
     public void error(CharSequence content, Throwable error) { 
-        logOutput.append(content).append("\n");
+        logOutput.append("[ERROR] ").append(content).append("\n");
         if (error != null) {
-            logOutput.append(error.getMessage()).append("\n");
+            logOutput.append("[ERROR] ").append(error.getMessage()).append("\n");
         }
     }
     
     @Override
     public void error(Throwable error) { 
         if (error != null) {
-            logOutput.append(error.getMessage()).append("\n");
+            logOutput.append("[ERROR] ").append(error.getMessage()).append("\n");
         }
     }
 }
