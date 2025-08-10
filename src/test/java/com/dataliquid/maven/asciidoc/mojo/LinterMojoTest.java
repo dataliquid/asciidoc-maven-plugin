@@ -96,7 +96,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         verify(mockLog).info(eq("  Warnings: 0"));
         
         // Verify error message was logged
-        verify(mockLog).error(eq("[document.adoc:4] ERROR: Attribute 'keywords' is too long: actual 'This is a very long keywords list that exceeds the maximum allowed' (66 characters), expected maximum 20 characters"));
+        verify(mockLog).error(eq("[document.adoc:2] ERROR: Attribute 'keywords' is too long: actual 'This is a very long keywords list that exceeds the maximum allowed' (66 characters), expected maximum 20 characters"));
     }
     
     @Test
