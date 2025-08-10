@@ -26,7 +26,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
     @Override
     protected void configureDefaultMojo(LinterMojo mojo) throws Exception {
         super.configureDefaultMojo(mojo);
-        // LinterMojo specific defaults
         setField(mojo, "failOnError", true);
     }
     
@@ -39,7 +38,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "ruleFile", ruleFile);
         
-        // Use a mock log to capture output
         Log mockLog = Mockito.mock(Log.class);
         mojo.setLog(mockLog);
         
@@ -47,20 +45,16 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         mojo.execute();
         
         // Then
-        // Verify the linter was executed
         verify(mockLog).info(eq("Found 1 AsciiDoc files to lint"));
         verify(mockLog).info(eq("Loading linter configuration from: " + ruleFile.getAbsolutePath()));
         verify(mockLog).info(contains("Linting: "));
         verify(mockLog).info(contains("document.adoc"));
         
-        // Verify linting completed successfully
         verify(mockLog).info(eq("Linting complete:"));
         
-        // Verify no errors or warnings occurred
         verify(mockLog).info(eq("  Errors: 0"));
         verify(mockLog).info(eq("  Warnings: 0"));
         
-        // Verify no error or warning messages were logged for the document
         verify(mockLog, never()).error(contains("document.adoc"));
         verify(mockLog, never()).warn(contains("document.adoc"));
     }
@@ -73,9 +67,8 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "ruleFile", ruleFile);
-        setField(mojo, "failOnError", false); // Don't fail on errors for this test
+        setField(mojo, "failOnError", false);
         
-        // Use a mock log to capture output
         Log mockLog = Mockito.mock(Log.class);
         mojo.setLog(mockLog);
         
@@ -83,23 +76,17 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         mojo.execute();
         
         // Then
-        // Verify the linter was executed
         verify(mockLog).info(eq("Starting AsciiDoc linting..."));
         verify(mockLog).info(eq("Found 1 AsciiDoc files"));
         verify(mockLog).info(eq("Found 1 AsciiDoc files to lint"));
         verify(mockLog).info(eq("Loading linter configuration from: " + ruleFile.getAbsolutePath()));
         
-        // Verify linting completed with violations
-        // The enhanced format adds an empty line before the summary
         verify(mockLog, atLeastOnce()).info(eq(""));
         verify(mockLog).info(eq("Linting complete:"));
         
-        // Verify exact error and warning counts
         verify(mockLog).info(eq("  Errors: 1"));
         verify(mockLog).info(eq("  Warnings: 0"));
         
-        // Verify that enhanced error output was generated
-        // The new formatter creates detailed output with context, so we verify the key parts
         verify(mockLog, atLeastOnce()).error(contains("Attribute 'keywords' is too long"));
     }
     
@@ -123,7 +110,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
     
     @Test
     void shouldProduceExactEnhancedConsoleOutputWithFullFormattingFeatures() throws Exception {
-        // Given: Test files with known violations
+        // Given
         File testSourceDir = new File(getClass().getResource("/functional/lint/lint-with-violations-test").toURI());
         File ruleFile = new File(testSourceDir, "linter-rules.yaml");
         String documentPath = testSourceDir.getAbsolutePath() + "/document.adoc";
@@ -138,15 +125,13 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         setField(mojo, "highlightErrors", true);
         setField(mojo, "showExamples", false);
         
-        // Use LogCapture for EXACT output comparison
         com.dataliquid.maven.asciidoc.stub.LogCapture logCapture = new com.dataliquid.maven.asciidoc.stub.LogCapture();
         mojo.setLog(logCapture);
         
         // When
         mojo.execute();
         
-        // Then: EXACT output comparison - character by character!
-        // This is HIGH-END professional testing with EXACT string matching!
+        // Then
         String expectedOutput = 
             "[INFO] Starting AsciiDoc linting...\n" +
             "[INFO] Found 1 AsciiDoc files\n" +
@@ -195,12 +180,104 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         
         String actualOutput = logCapture.getCapturedOutput();
         
-        // Since timing can vary, we need to normalize it for comparison
         String actualNormalized = actualOutput.replaceAll("Validation completed in \\d+ms", "Validation completed in TIMING_PLACEHOLDERms");
         
-        // Validate exact console output with character-perfect precision
-        // This ensures the Maven integration preserves all formatting features from the native linter
         assertEquals(expectedOutput, actualNormalized, 
             "Enhanced console output must match exactly including underlines, context, and suggestions");
+    }
+    
+    @Test
+    void shouldEnforcePlaceholderViolationsWithExactOutput() throws Exception {
+        // Given
+        File testSourceDir = new File(getClass().getResource("/functional/lint/placeholder-test").toURI());
+        File ruleFile = new File(testSourceDir, "linter-rules.yaml");
+        String documentPath = testSourceDir.getAbsolutePath() + "/document.adoc";
+        
+        setField(mojo, "sourceDirectory", testSourceDir);
+        setField(mojo, "ruleFile", ruleFile);
+        setField(mojo, "failOnError", false);
+        setField(mojo, "outputFormat", "enhanced");
+        setField(mojo, "useColors", false);
+        setField(mojo, "contextLines", 2);
+        setField(mojo, "showSuggestions", true);
+        setField(mojo, "highlightErrors", true);
+        setField(mojo, "showExamples", false);
+        
+        com.dataliquid.maven.asciidoc.stub.LogCapture logCapture = new com.dataliquid.maven.asciidoc.stub.LogCapture();
+        mojo.setLog(logCapture);
+        
+        // When
+        mojo.execute();
+        
+        // Then
+        String expectedOutput = 
+            "[INFO] Starting AsciiDoc linting...\n" +
+            "[INFO] Found 1 AsciiDoc files\n" +
+            "[INFO] Found 1 AsciiDoc files to lint\n" +
+            "[INFO] Loading linter configuration from: " + ruleFile.getAbsolutePath() + "\n" +
+            "[INFO] Linting: " + documentPath + "\n" +
+            "[INFO] " + documentPath + ":\n" +
+            "[INFO] \n" +
+            "[ERROR] [ERROR]: Missing required attribute 'description' [metadata.required]\n" +
+            "[ERROR]   File: " + documentPath + ":4:1\n" +
+            "[ERROR]   Expected: Attribute must be present\n" +
+            "[ERROR] \n" +
+            "[ERROR]    2 | :version: 1.0.0\n" +
+            "[ERROR]    3 | :keywords: API, REST, Documentation\n" +
+            "[ERROR]    4 | «:description: value»\n" +
+            "[ERROR]    5 | \n" +
+            "[ERROR]    6 | == Overview\n" +
+            "[ERROR]    7 | \n" +
+            "[ERROR] \n" +
+            "[ERROR] Suggested fix:\n" +
+            "[ERROR]   Add required attribute to document header\n" +
+            "[ERROR]   :description: value\n" +
+            "[ERROR]   Required attributes must be defined in the document header\n" +
+            "[ERROR] \n" +
+            "[ERROR] [ERROR]: Missing required attribute 'author' [metadata.required]\n" +
+            "[ERROR]   File: " + documentPath + ":4:1\n" +
+            "[ERROR]   Expected: Attribute must be present\n" +
+            "[ERROR] \n" +
+            "[ERROR]    2 | :version: 1.0.0\n" +
+            "[ERROR]    3 | :keywords: API, REST, Documentation\n" +
+            "[ERROR]    4 | «:author: value»\n" +
+            "[ERROR]    5 | \n" +
+            "[ERROR]    6 | == Overview\n" +
+            "[ERROR]    7 | \n" +
+            "[ERROR] \n" +
+            "[ERROR] Suggested fix:\n" +
+            "[ERROR]   Add required attribute to document header\n" +
+            "[ERROR]   :author: value\n" +
+            "[ERROR]   Required attributes must be defined in the document header\n" +
+            "[ERROR] \n" +
+            "[ERROR] \n" +
+            "[ERROR] \n" +
+            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
+            "[ERROR] |                                                  Validation Summary                                                  |\n" +
+            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
+            "[ERROR]   Total files scanned:     1\n" +
+            "[ERROR]   Files with errors:       1\n" +
+            "[ERROR] \n" +
+            "[ERROR]   Errors:   2\n" +
+            "[ERROR]   Warnings: 0\n" +
+            "[ERROR]   Info:     0\n" +
+            "[ERROR] \n" +
+            "[ERROR]   Most common issues:\n" +
+            "[ERROR]   💡   💡   - Missing required attribute 'description' (2 occurrences)\n" +
+            "[ERROR] \n" +
+            "[ERROR] \n" +
+            "[ERROR] Summary: 2 errors, 0 warnings, 0 info messages\n" +
+            "[ERROR] Validation completed in TIMING_PLACEHOLDERms\n" +
+            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
+            "[INFO] Linting complete:\n" +
+            "[INFO]   Errors: 2\n" +
+            "[INFO]   Warnings: 0";
+        
+        String actualOutput = logCapture.getCapturedOutput();
+        
+        String actualNormalized = actualOutput.replaceAll("Validation completed in \\d+ms", "Validation completed in TIMING_PLACEHOLDERms");
+        
+        assertEquals(expectedOutput, actualNormalized, 
+            "Placeholder enforcement output must match EXACTLY - every character, every space, every line!");
     }
 }
