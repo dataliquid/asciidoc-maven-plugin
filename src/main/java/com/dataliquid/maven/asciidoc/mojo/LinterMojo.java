@@ -118,10 +118,6 @@ public class LinterMojo extends AbstractAsciiDocMojo {
             linter.close();
             
             // Summary
-            // Only add empty line for simple format (enhanced format already includes it)
-            if (!"enhanced".equals(outputFormat)) {
-                getLog().info("");
-            }
             getLog().info("Linting complete:");
             getLog().info("  Errors: " + totalErrors);
             getLog().info("  Warnings: " + totalWarnings);
