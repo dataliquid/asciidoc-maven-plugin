@@ -18,12 +18,7 @@ public class LogCapture implements Log {
     }
     
     public String getCapturedOutput() {
-        String output = logOutput.toString();
-        // Remove trailing newline if present
-        if (output.endsWith("\n")) {
-            output = output.substring(0, output.length() - 1);
-        }
-        return output;
+        return logOutput.toString();
     }
     
     public void clear() {

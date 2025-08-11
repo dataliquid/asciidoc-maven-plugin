@@ -176,7 +176,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
             "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
             "[INFO] Linting complete:\n" +
             "[INFO]   Errors: 1\n" +
-            "[INFO]   Warnings: 0";
+            "[INFO]   Warnings: 0\n";
         
         String actualOutput = logCapture.getCapturedOutput();
         
@@ -271,7 +271,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
             "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
             "[INFO] Linting complete:\n" +
             "[INFO]   Errors: 2\n" +
-            "[INFO]   Warnings: 0";
+            "[INFO]   Warnings: 0\n";
         
         String actualOutput = logCapture.getCapturedOutput();
         
