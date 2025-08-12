@@ -98,7 +98,7 @@ public class LinterMojo extends AbstractAsciiDocMojo {
                     // Process results with enhanced formatter
                     if (!result.getMessages().isEmpty()) {
                         // Use the enhanced formatter for output
-                        formatter.format(result, null); // MavenReportFormatter creates its own writer
+                        formatter.format(result);
                         
                         // Count errors and warnings
                         for (ValidationMessage validationMessage : result.getMessages()) {

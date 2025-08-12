@@ -42,11 +42,12 @@ public class MavenReportFormatter implements ReportFormatter {
      * Formats the validation result using the native ConsoleFormatter
      * and routes the output through Maven's logging system.
      * 
+     * This method uses Maven's logging system directly and doesn't require
+     * an external writer.
+     * 
      * @param result The validation result to format
-     * @param writer The writer to output to (will be wrapped/replaced)
      */
-    @Override
-    public void format(ValidationResult result, PrintWriter writer) {
+    public void format(ValidationResult result) {
         // Create a MavenLogWriter that bridges to Maven's logging
         boolean stripAnsi = !config.getDisplay().isUseColors() || !MavenLogWriter.supportsAnsiColors();
         MavenLogWriter mavenWriter = new MavenLogWriter(mavenLog, stripAnsi);
@@ -57,6 +58,19 @@ public class MavenReportFormatter implements ReportFormatter {
         
         // Ensure all buffered content is written
         mavenWriter.flush();
+    }
+    
+    /**
+     * Formats the validation result using the native ConsoleFormatter
+     * and routes the output through Maven's logging system.
+     * 
+     * @param result The validation result to format
+     * @param writer The writer to output to (ignored - uses Maven logging instead)
+     */
+    @Override
+    public void format(ValidationResult result, PrintWriter writer) {
+        // Delegate to the parameterless version that uses Maven logging
+        format(result);
     }
     
     /**
