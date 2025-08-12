@@ -145,45 +145,39 @@ public class LinterMojo extends AbstractAsciiDocMojo {
         // Try to load predefined format
         try {
             OutputFormat format = OutputFormat.valueOf(outputFormat.toUpperCase());
-            OutputConfiguration config = outputLoader.loadPredefinedConfiguration(format);
+            OutputConfiguration baseConfig = outputLoader.loadPredefinedConfiguration(format);
             
-            // Override with Maven-specific settings
-            return customizeOutputConfiguration(config);
+            // Override with Maven-specific settings, keeping some base config values
+            return createMavenOutputConfiguration(baseConfig.getSummary(), baseConfig.getDisplay().isShowLineNumbers());
         } catch (IllegalArgumentException e) {
-            // If not a predefined format, create custom configuration
-            return createCustomOutputConfiguration();
+            // If not a predefined format, create custom configuration with defaults
+            SummaryConfig defaultSummary = SummaryConfig.builder()
+                .showStatistics(true)
+                .showMostCommon(true)
+                .showFileList(false)
+                .build();
+            return createMavenOutputConfiguration(defaultSummary, true);
         }
     }
     
     /**
-     * Customizes the output configuration with Maven parameters.
+     * Creates a Maven-specific output configuration with the given base settings.
      */
-    private OutputConfiguration customizeOutputConfiguration(OutputConfiguration base) {
+    private OutputConfiguration createMavenOutputConfiguration(SummaryConfig summaryConfig, boolean showLineNumbers) {
         return OutputConfiguration.builder()
             .display(DisplayConfig.builder()
                 .contextLines(contextLines)
                 .highlightStyle(highlightErrors ? HighlightStyle.UNDERLINE : HighlightStyle.NONE)
                 .useColors(useColors && MavenLogWriter.supportsAnsiColors())
-                .showLineNumbers(true)
-                .showHeader(false) // No header in Maven output
+                .showLineNumbers(showLineNumbers)
+                .showHeader(false) // Always false for Maven output
                 .build())
             .suggestions(SuggestionsConfig.builder()
                 .enabled(showSuggestions)
                 .maxPerError(maxSuggestionsPerError)
                 .showExamples(showExamples)
                 .build())
-            .summary(SummaryConfig.builder()
-                .showStatistics(true)
-                .showMostCommon(true)
-                .showFileList(false) // We already show file-by-file
-                .build())
+            .summary(summaryConfig)
             .build();
-    }
-    
-    /**
-     * Creates a custom output configuration from scratch.
-     */
-    private OutputConfiguration createCustomOutputConfiguration() {
-        return customizeOutputConfiguration(OutputConfiguration.builder().build());
     }
 }
