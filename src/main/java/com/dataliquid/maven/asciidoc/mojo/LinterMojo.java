@@ -55,6 +55,9 @@ public class LinterMojo extends AbstractAsciiDocMojo {
     
     @Parameter(property = "asciidoc.linter.showExamples", defaultValue = "false")
     private boolean showExamples;
+    
+    @Parameter(property = "asciidoc.linter.maxSuggestionsPerError", defaultValue = "3")
+    private int maxSuggestionsPerError;
 
     @Override
     protected String getMojoName() {
@@ -166,7 +169,7 @@ public class LinterMojo extends AbstractAsciiDocMojo {
                 .build())
             .suggestions(SuggestionsConfig.builder()
                 .enabled(showSuggestions)
-                .maxPerError(3)
+                .maxPerError(maxSuggestionsPerError)
                 .showExamples(showExamples)
                 .build())
             .summary(SummaryConfig.builder()

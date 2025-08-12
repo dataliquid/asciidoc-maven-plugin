@@ -124,6 +124,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         setField(mojo, "showSuggestions", true);
         setField(mojo, "highlightErrors", true);
         setField(mojo, "showExamples", false);
+        setField(mojo, "maxSuggestionsPerError", 3);
         
         com.dataliquid.maven.asciidoc.stub.LogCapture logCapture = new com.dataliquid.maven.asciidoc.stub.LogCapture();
         mojo.setLog(logCapture);
@@ -208,6 +209,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         setField(mojo, "showSuggestions", true);
         setField(mojo, "highlightErrors", true);
         setField(mojo, "showExamples", false);
+        setField(mojo, "maxSuggestionsPerError", 3);
         
         com.dataliquid.maven.asciidoc.stub.LogCapture logCapture = new com.dataliquid.maven.asciidoc.stub.LogCapture();
         mojo.setLog(logCapture);
