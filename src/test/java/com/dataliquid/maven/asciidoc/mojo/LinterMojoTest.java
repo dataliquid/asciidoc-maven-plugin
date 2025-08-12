@@ -132,51 +132,57 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         mojo.execute();
         
         // Then
-        String expectedOutput = 
-            "[INFO] Starting AsciiDoc linting...\n" +
-            "[INFO] Found 1 AsciiDoc files\n" +
-            "[INFO] Found 1 AsciiDoc files to lint\n" +
-            "[INFO] Loading linter configuration from: " + ruleFile.getAbsolutePath() + "\n" +
-            "[INFO] Linting: " + documentPath + "\n" +
-            "[INFO] " + documentPath + ":\n" +
-            "[INFO] \n" +
-            "[ERROR] [ERROR]: Attribute 'keywords' is too long: actual 'This is a very long keywords list that exceeds the maximum allowed' (66 characters), expected maximum 20 characters [metadata.length.max]\n" +
-            "[ERROR]   File: " + documentPath + ":2:12-77\n" +
-            "[ERROR]   Actual: This is a very long keywords list that exceeds the maximum allowed (66 characters)\n" +
-            "[ERROR]   Expected: Maximum 20 characters\n" +
-            "[ERROR] \n" +
-            "[ERROR]    1 | = Document\n" +
-            "[ERROR]    2 | :keywords: This is a very long keywords list that exceeds the maximum allowed\n" +
-            "[ERROR]      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
-            "[ERROR]    3 | \n" +
-            "[ERROR]    4 | Content here.\n" +
-            "[ERROR] \n" +
-            "[ERROR] Suggested fix:\n" +
-            "[ERROR]   Shorten the attribute value\n" +
-            "[ERROR]   Attribute value must not exceed 20 characters\n" +
-            "[ERROR] \n" +
-            "[ERROR] \n" +
-            "[ERROR] \n" +
-            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
-            "[ERROR] |                                                  Validation Summary                                                  |\n" +
-            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
-            "[ERROR]   Total files scanned:     1\n" +
-            "[ERROR]   Files with errors:       1\n" +
-            "[ERROR] \n" +
-            "[ERROR]   Errors:   1\n" +
-            "[ERROR]   Warnings: 0\n" +
-            "[ERROR]   Info:     0\n" +
-            "[ERROR] \n" +
-            "[ERROR]   Most common issues:\n" +
-            "[ERROR]   💡   - Attribute 'keywords' is too long: actual 'This is a very long keywords list that exceeds the maximum allowed' (66 characters), expected maximum 20 characters (1 occurrence)\n" +
-            "[ERROR] \n" +
-            "[ERROR] \n" +
-            "[ERROR] Summary: 1 error, 0 warnings, 0 info messages\n" +
-            "[ERROR] Validation completed in TIMING_PLACEHOLDERms\n" +
-            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
-            "[INFO] Linting complete:\n" +
-            "[INFO]   Errors: 1\n" +
-            "[INFO]   Warnings: 0\n";
+        String expectedOutput = ("""
+            [INFO] Starting AsciiDoc linting...
+            [INFO] Found 1 AsciiDoc files
+            [INFO] Found 1 AsciiDoc files to lint
+            [INFO] Loading linter configuration from: %s
+            [INFO] Linting: %s
+            [INFO] %s:
+            [INFO]\s
+            [ERROR] [ERROR]: Attribute 'keywords' is too long: actual 'This is a very long keywords list that exceeds the maximum allowed' (66 characters), expected maximum 20 characters [metadata.length.max]
+            [ERROR]   File: %s:2:12-77
+            [ERROR]   Actual: This is a very long keywords list that exceeds the maximum allowed (66 characters)
+            [ERROR]   Expected: Maximum 20 characters
+            [ERROR]\s
+            [ERROR]    1 | = Document
+            [ERROR]    2 | :keywords: This is a very long keywords list that exceeds the maximum allowed
+            [ERROR]      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            [ERROR]    3 |\s
+            [ERROR]    4 | Content here.
+            [ERROR]\s
+            [ERROR] Suggested fix:
+            [ERROR]   Shorten the attribute value
+            [ERROR]   Attribute value must not exceed 20 characters
+            [ERROR]\s
+            [ERROR]\s
+            [ERROR]\s
+            [ERROR] +----------------------------------------------------------------------------------------------------------------------+
+            [ERROR] |                                                  Validation Summary                                                  |
+            [ERROR] +----------------------------------------------------------------------------------------------------------------------+
+            [ERROR]   Total files scanned:     1
+            [ERROR]   Files with errors:       1
+            [ERROR]\s
+            [ERROR]   Errors:   1
+            [ERROR]   Warnings: 0
+            [ERROR]   Info:     0
+            [ERROR]\s
+            [ERROR]   Most common issues:
+            [ERROR]   💡   - Attribute 'keywords' is too long: actual 'This is a very long keywords list that exceeds the maximum allowed' (66 characters), expected maximum 20 characters (1 occurrence)
+            [ERROR]\s
+            [ERROR]\s
+            [ERROR] Summary: 1 error, 0 warnings, 0 info messages
+            [ERROR] Validation completed in TIMING_PLACEHOLDERms
+            [ERROR] +----------------------------------------------------------------------------------------------------------------------+
+            [INFO] Linting complete:
+            [INFO]   Errors: 1
+            [INFO]   Warnings: 0
+            """.formatted(
+                ruleFile.getAbsolutePath(),
+                documentPath,
+                documentPath,
+                documentPath
+            ));
         
         String actualOutput = logCapture.getCapturedOutput();
         
@@ -210,68 +216,75 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         mojo.execute();
         
         // Then
-        String expectedOutput = 
-            "[INFO] Starting AsciiDoc linting...\n" +
-            "[INFO] Found 1 AsciiDoc files\n" +
-            "[INFO] Found 1 AsciiDoc files to lint\n" +
-            "[INFO] Loading linter configuration from: " + ruleFile.getAbsolutePath() + "\n" +
-            "[INFO] Linting: " + documentPath + "\n" +
-            "[INFO] " + documentPath + ":\n" +
-            "[INFO] \n" +
-            "[ERROR] [ERROR]: Missing required attribute 'description' [metadata.required]\n" +
-            "[ERROR]   File: " + documentPath + ":4:1\n" +
-            "[ERROR]   Expected: Attribute must be present\n" +
-            "[ERROR] \n" +
-            "[ERROR]    2 | :version: 1.0.0\n" +
-            "[ERROR]    3 | :keywords: API, REST, Documentation\n" +
-            "[ERROR]    4 | «:description: value»\n" +
-            "[ERROR]    5 | \n" +
-            "[ERROR]    6 | == Overview\n" +
-            "[ERROR]    7 | \n" +
-            "[ERROR] \n" +
-            "[ERROR] Suggested fix:\n" +
-            "[ERROR]   Add required attribute to document header\n" +
-            "[ERROR]   :description: value\n" +
-            "[ERROR]   Required attributes must be defined in the document header\n" +
-            "[ERROR] \n" +
-            "[ERROR] [ERROR]: Missing required attribute 'author' [metadata.required]\n" +
-            "[ERROR]   File: " + documentPath + ":4:1\n" +
-            "[ERROR]   Expected: Attribute must be present\n" +
-            "[ERROR] \n" +
-            "[ERROR]    2 | :version: 1.0.0\n" +
-            "[ERROR]    3 | :keywords: API, REST, Documentation\n" +
-            "[ERROR]    4 | «:author: value»\n" +
-            "[ERROR]    5 | \n" +
-            "[ERROR]    6 | == Overview\n" +
-            "[ERROR]    7 | \n" +
-            "[ERROR] \n" +
-            "[ERROR] Suggested fix:\n" +
-            "[ERROR]   Add required attribute to document header\n" +
-            "[ERROR]   :author: value\n" +
-            "[ERROR]   Required attributes must be defined in the document header\n" +
-            "[ERROR] \n" +
-            "[ERROR] \n" +
-            "[ERROR] \n" +
-            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
-            "[ERROR] |                                                  Validation Summary                                                  |\n" +
-            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
-            "[ERROR]   Total files scanned:     1\n" +
-            "[ERROR]   Files with errors:       1\n" +
-            "[ERROR] \n" +
-            "[ERROR]   Errors:   2\n" +
-            "[ERROR]   Warnings: 0\n" +
-            "[ERROR]   Info:     0\n" +
-            "[ERROR] \n" +
-            "[ERROR]   Most common issues:\n" +
-            "[ERROR]   💡   💡   - Missing required attribute 'description' (2 occurrences)\n" +
-            "[ERROR] \n" +
-            "[ERROR] \n" +
-            "[ERROR] Summary: 2 errors, 0 warnings, 0 info messages\n" +
-            "[ERROR] Validation completed in TIMING_PLACEHOLDERms\n" +
-            "[ERROR] +----------------------------------------------------------------------------------------------------------------------+\n" +
-            "[INFO] Linting complete:\n" +
-            "[INFO]   Errors: 2\n" +
-            "[INFO]   Warnings: 0\n";
+        String expectedOutput = ("""
+            [INFO] Starting AsciiDoc linting...
+            [INFO] Found 1 AsciiDoc files
+            [INFO] Found 1 AsciiDoc files to lint
+            [INFO] Loading linter configuration from: %s
+            [INFO] Linting: %s
+            [INFO] %s:
+            [INFO]\s
+            [ERROR] [ERROR]: Missing required attribute 'description' [metadata.required]
+            [ERROR]   File: %s:4:1
+            [ERROR]   Expected: Attribute must be present
+            [ERROR]\s
+            [ERROR]    2 | :version: 1.0.0
+            [ERROR]    3 | :keywords: API, REST, Documentation
+            [ERROR]    4 | «:description: value»
+            [ERROR]    5 |\s
+            [ERROR]    6 | == Overview
+            [ERROR]    7 |\s
+            [ERROR]\s
+            [ERROR] Suggested fix:
+            [ERROR]   Add required attribute to document header
+            [ERROR]   :description: value
+            [ERROR]   Required attributes must be defined in the document header
+            [ERROR]\s
+            [ERROR] [ERROR]: Missing required attribute 'author' [metadata.required]
+            [ERROR]   File: %s:4:1
+            [ERROR]   Expected: Attribute must be present
+            [ERROR]\s
+            [ERROR]    2 | :version: 1.0.0
+            [ERROR]    3 | :keywords: API, REST, Documentation
+            [ERROR]    4 | «:author: value»
+            [ERROR]    5 |\s
+            [ERROR]    6 | == Overview
+            [ERROR]    7 |\s
+            [ERROR]\s
+            [ERROR] Suggested fix:
+            [ERROR]   Add required attribute to document header
+            [ERROR]   :author: value
+            [ERROR]   Required attributes must be defined in the document header
+            [ERROR]\s
+            [ERROR]\s
+            [ERROR]\s
+            [ERROR] +----------------------------------------------------------------------------------------------------------------------+
+            [ERROR] |                                                  Validation Summary                                                  |
+            [ERROR] +----------------------------------------------------------------------------------------------------------------------+
+            [ERROR]   Total files scanned:     1
+            [ERROR]   Files with errors:       1
+            [ERROR]\s
+            [ERROR]   Errors:   2
+            [ERROR]   Warnings: 0
+            [ERROR]   Info:     0
+            [ERROR]\s
+            [ERROR]   Most common issues:
+            [ERROR]   💡   💡   - Missing required attribute 'description' (2 occurrences)
+            [ERROR]\s
+            [ERROR]\s
+            [ERROR] Summary: 2 errors, 0 warnings, 0 info messages
+            [ERROR] Validation completed in TIMING_PLACEHOLDERms
+            [ERROR] +----------------------------------------------------------------------------------------------------------------------+
+            [INFO] Linting complete:
+            [INFO]   Errors: 2
+            [INFO]   Warnings: 0
+            """.formatted(
+                ruleFile.getAbsolutePath(),
+                documentPath,
+                documentPath,
+                documentPath,
+                documentPath
+            ));
         
         String actualOutput = logCapture.getCapturedOutput();
         
