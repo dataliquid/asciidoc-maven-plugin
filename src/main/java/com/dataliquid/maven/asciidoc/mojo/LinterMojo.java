@@ -12,9 +12,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import com.dataliquid.asciidoc.linter.Linter;
 import com.dataliquid.asciidoc.linter.config.LinterConfiguration;
-import com.dataliquid.asciidoc.linter.config.common.Severity;
 import com.dataliquid.asciidoc.linter.config.loader.ConfigurationLoader;
-import com.dataliquid.asciidoc.linter.validator.ValidationMessage;
 import com.dataliquid.asciidoc.linter.validator.ValidationResult;
 import com.dataliquid.asciidoc.linter.config.output.OutputConfiguration;
 import com.dataliquid.asciidoc.linter.config.output.OutputConfigurationLoader;
@@ -38,8 +36,8 @@ public class LinterMojo extends AbstractAsciiDocMojo {
     @Parameter(property = "asciidoc.linter.failOnError", defaultValue = "true")
     private boolean failOnError;
     
-    @Parameter(property = "asciidoc.linter.outputFormat", defaultValue = "enhanced")
-    private String outputFormat;
+    @Parameter(property = "asciidoc.linter.consoleOutputFormat", defaultValue = "enhanced")
+    private String consoleOutputFormat;
     
     @Parameter(property = "asciidoc.linter.useColors", defaultValue = "true")
     private boolean useColors;
@@ -85,53 +83,23 @@ public class LinterMojo extends AbstractAsciiDocMojo {
             OutputConfiguration outputConfig = createOutputConfiguration();
             MavenReportFormatter formatter = new MavenReportFormatter(outputConfig, getLog());
             
-            int totalErrors = 0;
-            int totalWarnings = 0;
-            
             // Lint each file
             for (Path file : adocFiles) {
                 getLog().info("Linting: " + file);
+                ValidationResult result = linter.validateFile(file, linterConfiguration);
                 
-                try {
-                    ValidationResult result = linter.validateFile(file, linterConfiguration);
-                    
-                    // Process results with enhanced formatter
-                    if (!result.getMessages().isEmpty()) {
-                        // Use the enhanced formatter for output
-                        formatter.format(result);
-                        
-                        // Count errors and warnings
-                        for (ValidationMessage validationMessage : result.getMessages()) {
-                            if (validationMessage.getSeverity() == Severity.ERROR) {
-                                totalErrors++;
-                            } else if (validationMessage.getSeverity() == Severity.WARN) {
-                                totalWarnings++;
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    getLog().error("Error linting file " + file + ": " + e.getMessage());
-                    if (failOnError) {
-                        throw e;
-                    }
+                // Process results with enhanced formatter
+                if (!result.getMessages().isEmpty()) {
+                    formatter.format(result);
                 }
             }
             
             // Close the linter
             linter.close();
-            
-            // Summary
-            getLog().info("Linting complete:");
-            getLog().info("  Errors: " + totalErrors);
-            getLog().info("  Warnings: " + totalWarnings);
-            
-            // Check if we should fail the build
-            if (totalErrors > 0 && failOnError) {
-                throw new MojoFailureException("AsciiDoc linting failed with " + totalErrors + " error(s)");
-            }
-            
-        } catch (IOException e) {
-            throw new MojoExecutionException("Error executing AsciiDoc linter", e);
+        } catch (MojoExecutionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error during linting", e);
         }
     }
     
@@ -142,35 +110,18 @@ public class LinterMojo extends AbstractAsciiDocMojo {
     private OutputConfiguration createOutputConfiguration() throws IOException {
         OutputConfigurationLoader outputLoader = new OutputConfigurationLoader();
         
-        // Try to load predefined format
-        try {
-            OutputFormat format = OutputFormat.valueOf(outputFormat.toUpperCase());
-            OutputConfiguration baseConfig = outputLoader.loadPredefinedConfiguration(format);
-            
-            // Override with Maven-specific settings, keeping some base config values
-            return createMavenOutputConfiguration(baseConfig.getSummary(), baseConfig.getDisplay().isShowLineNumbers());
-        } catch (IllegalArgumentException e) {
-            // If not a predefined format, create custom configuration with defaults
-            SummaryConfig defaultSummary = SummaryConfig.builder()
-                .showStatistics(true)
-                .showMostCommon(true)
-                .showFileList(false)
-                .build();
-            return createMavenOutputConfiguration(defaultSummary, true);
-        }
-    }
-    
-    /**
-     * Creates a Maven-specific output configuration with the given base settings.
-     */
-    private OutputConfiguration createMavenOutputConfiguration(SummaryConfig summaryConfig, boolean showLineNumbers) {
+        OutputFormat format = OutputFormat.valueOf(consoleOutputFormat.toUpperCase());
+        OutputConfiguration baseConfig = outputLoader.loadPredefinedConfiguration(format);
+        SummaryConfig summaryConfig = baseConfig.getSummary();
+        boolean showLineNumbers = baseConfig.getDisplay().isShowLineNumbers();
+        
         return OutputConfiguration.builder()
             .display(DisplayConfig.builder()
                 .contextLines(contextLines)
                 .highlightStyle(highlightErrors ? HighlightStyle.UNDERLINE : HighlightStyle.NONE)
                 .useColors(useColors && MavenLogWriter.supportsAnsiColors())
                 .showLineNumbers(showLineNumbers)
-                .showHeader(false) // Always false for Maven output
+                .showHeader(false)
                 .build())
             .suggestions(SuggestionsConfig.builder()
                 .enabled(showSuggestions)

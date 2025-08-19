@@ -27,6 +27,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
     protected void configureDefaultMojo(LinterMojo mojo) throws Exception {
         super.configureDefaultMojo(mojo);
         setField(mojo, "failOnError", true);
+        setField(mojo, "consoleOutputFormat", "enhanced");
     }
     
     @Test
@@ -49,11 +50,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         verify(mockLog).info(eq("Loading linter configuration from: " + ruleFile.getAbsolutePath()));
         verify(mockLog).info(contains("Linting: "));
         verify(mockLog).info(contains("document.adoc"));
-        
-        verify(mockLog).info(eq("Linting complete:"));
-        
-        verify(mockLog).info(eq("  Errors: 0"));
-        verify(mockLog).info(eq("  Warnings: 0"));
         
         verify(mockLog, never()).error(contains("document.adoc"));
         verify(mockLog, never()).warn(contains("document.adoc"));
@@ -82,11 +78,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         verify(mockLog).info(eq("Loading linter configuration from: " + ruleFile.getAbsolutePath()));
         
         verify(mockLog, atLeastOnce()).info(eq(""));
-        verify(mockLog).info(eq("Linting complete:"));
-        
-        verify(mockLog).info(eq("  Errors: 1"));
-        verify(mockLog).info(eq("  Warnings: 0"));
-        
         verify(mockLog, atLeastOnce()).error(contains("Attribute 'keywords' is too long"));
     }
     
@@ -118,7 +109,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "ruleFile", ruleFile);
         setField(mojo, "failOnError", false);
-        setField(mojo, "outputFormat", "enhanced");
+        setField(mojo, "consoleOutputFormat", "enhanced");
         setField(mojo, "useColors", false);
         setField(mojo, "contextLines", 2);
         setField(mojo, "showSuggestions", true);
@@ -175,9 +166,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
             [ERROR] Summary: 1 error, 0 warnings, 0 info messages
             [ERROR] Validation completed in TIMING_PLACEHOLDERms
             [ERROR] +----------------------------------------------------------------------------------------------------------------------+
-            [INFO] Linting complete:
-            [INFO]   Errors: 1
-            [INFO]   Warnings: 0
             """.formatted(
                 ruleFile.getAbsolutePath(),
                 documentPath,
@@ -203,7 +191,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "ruleFile", ruleFile);
         setField(mojo, "failOnError", false);
-        setField(mojo, "outputFormat", "enhanced");
+        setField(mojo, "consoleOutputFormat", "enhanced");
         setField(mojo, "useColors", false);
         setField(mojo, "contextLines", 2);
         setField(mojo, "showSuggestions", true);
@@ -277,9 +265,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
             [ERROR] Summary: 2 errors, 0 warnings, 0 info messages
             [ERROR] Validation completed in TIMING_PLACEHOLDERms
             [ERROR] +----------------------------------------------------------------------------------------------------------------------+
-            [INFO] Linting complete:
-            [INFO]   Errors: 2
-            [INFO]   Warnings: 0
             """.formatted(
                 ruleFile.getAbsolutePath(),
                 documentPath,
