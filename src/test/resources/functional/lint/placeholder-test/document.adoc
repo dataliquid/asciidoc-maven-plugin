@@ -1,0 +1,49 @@
+= API Documentation
+:version: 1.0.0
+:keywords: API, REST, Documentation
+
+== Overview
+
+This document describes the REST API endpoints.
+
+=== Authentication
+
+Use Bearer tokens for authentication. The token should be passed as: `Bearer [TODO: Add token format]`
+
+== Endpoints
+
+=== GET /users
+
+Retrieves a list of users.
+
+TODO: Add response examples
+
+=== POST /users
+
+Creates a new user.
+
+Request body:
+[source,json]
+----
+{
+  "name": "[TODO: username]",
+  "email": "[TODO: email]"
+}
+----
+
+== Error Handling
+
+All errors return a standard format:
+
+[source,json]
+----
+{
+  "error": "TODO: Error message",
+  "code": "TODO: Error code"
+}
+----
+
+== Notes
+
+* TODO: Add rate limiting information
+* The API base URL is: `https://api.example.com/v1`

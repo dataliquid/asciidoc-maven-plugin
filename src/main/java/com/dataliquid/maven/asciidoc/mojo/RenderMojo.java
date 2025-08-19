@@ -169,7 +169,10 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         
         if (enableDiagrams) {
             allAttributes.put("diagram-format", diagramFormat);
-            allAttributes.put("imagesoutdir", new File(workDirectory, "images").getAbsolutePath());
+            // Set imagesoutdir to workDirectory to avoid generating diagrams in project root
+            File imagesOutDir = new File(workDirectory, "images");
+            imagesOutDir.mkdirs();
+            allAttributes.put("imagesoutdir", imagesOutDir.getAbsolutePath());
             allAttributes.put("diagram-cachedir", new File(workDirectory, "diagram-cache").getAbsolutePath());
         }
 
@@ -268,7 +271,19 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         String content = Files.readString(adocFile);
         
         // Use AsciidoctorJ to parse the document
+        Map<String, Object> allAttributes = new HashMap<>(attributes);
+        
+        // Prevent diagram generation in project root (same as in convertAsciiDocToHtml)
+        if (enableDiagrams) {
+            File imagesOutDir = new File(workDirectory, "images");
+            imagesOutDir.mkdirs();
+            allAttributes.put("imagesoutdir", imagesOutDir.getAbsolutePath());
+            allAttributes.put("diagram-format", diagramFormat);
+            allAttributes.put("diagram-cachedir", new File(workDirectory, "diagram-cache").getAbsolutePath());
+        }
+        
         Attributes documentAttributes = Attributes.builder()
+                .attributes(allAttributes)
                 .skipFrontMatter(true)
                 .build();
                 

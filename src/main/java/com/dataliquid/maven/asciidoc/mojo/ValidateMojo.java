@@ -48,6 +48,9 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
     @Parameter(property = "asciidoc.includeAttributes", defaultValue = "true")
     private boolean includeAttributes;
 
+    @Parameter(property = "asciidoc.metadataExportFile")
+    private File metadataExportFile;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final MetadataCollector metadataCollector = new MetadataCollector();
 
@@ -63,12 +66,38 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         // Process all files: collect metadata
         for (Path adocFile : adocFiles) {
             try {
+                String relativePath = sourceDirectory.toPath().relativize(adocFile).toString();
+                getLog().info("Processing file: " + relativePath);
+                
                 // Collect all metadata (front matter + attributes)
                 Map<String, Object> allMetadata = collectAllMetadata(adocFile);
-                String relativePath = sourceDirectory.toPath().relativize(adocFile).toString();
                 metadataCollector.addDocument(relativePath, allMetadata);
+                
+                // Log collected metadata in debug mode
+                if (getLog().isDebugEnabled()) {
+                    try {
+                        String prettyJson = objectMapper.writerWithDefaultPrettyPrinter()
+                            .writeValueAsString(allMetadata);
+                        getLog().debug("Collected metadata for " + relativePath + ":\n" + prettyJson);
+                    } catch (Exception e) {
+                        getLog().debug("Failed to serialize metadata for logging: " + e.getMessage());
+                    }
+                }
             } catch (IOException e) {
                 allErrors.add(new ValidationError(adocFile, "IO_ERROR", "Failed to read file: " + e.getMessage()));
+            }
+        }
+
+        // Export metadata if configured
+        if (metadataExportFile != null && metadataCollector.size() > 0) {
+            try {
+                exportMetadata();
+            } catch (IOException e) {
+                allErrors.add(new ValidationError(
+                    Paths.get("EXPORT"), 
+                    "EXPORT_ERROR", 
+                    "Failed to export metadata: " + e.getMessage()
+                ));
             }
         }
 
@@ -125,7 +154,15 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         String content = Files.readString(adocFile);
         
         // Use AsciidoctorJ to parse the document
+        Map<String, Object> allAttributes = new HashMap<>();
+        
+        // Use temp directory for diagrams during validation to avoid polluting project
+        File tempImagesDir = new File(System.getProperty("java.io.tmpdir"), "asciidoc-validate-images");
+        tempImagesDir.mkdirs();
+        allAttributes.put("imagesoutdir", tempImagesDir.getAbsolutePath());
+        
         Attributes documentAttributes = Attributes.builder()
+                .attributes(allAttributes)
                 .skipFrontMatter(true)
                 .build();
                 
@@ -224,5 +261,25 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         
         return errors;
     }
+
+    private void exportMetadata() throws IOException {
+        // Create parent directory if needed
+        if (metadataExportFile.getParentFile() != null && !metadataExportFile.getParentFile().exists()) {
+            Files.createDirectories(metadataExportFile.getParentFile().toPath());
+        }
+        
+        // Convert metadata to JSON
+        Map<String, Object> metadataJson = metadataCollector.toJson();
+        
+        // Write pretty-printed JSON to file
+        String jsonOutput = objectMapper.writerWithDefaultPrettyPrinter()
+            .writeValueAsString(metadataJson);
+        
+        Files.writeString(metadataExportFile.toPath(), jsonOutput);
+        
+        getLog().info("Metadata exported to: " + metadataExportFile.getAbsolutePath());
+        getLog().info("Exported metadata for " + metadataCollector.size() + " documents");
+    }
+
 
 }
