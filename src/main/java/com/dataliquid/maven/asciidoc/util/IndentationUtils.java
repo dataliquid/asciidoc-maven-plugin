@@ -4,21 +4,23 @@ package com.dataliquid.maven.asciidoc.util;
  * Utility class for handling indentation in templates and error messages.
  */
 public class IndentationUtils {
-    
+
     /**
-     * Removes common leading indentation from all lines while preserving relative indentation.
-     * This is similar to stripIndent() but specifically designed for template content.
-     * 
-     * @param content The content to process
-     * @return Content with common indentation removed
+     * Removes common leading indentation from all lines while preserving relative
+     * indentation. This is similar to stripIndent() but specifically designed for
+     * template content.
+     *
+     * @param  content The content to process
+     *
+     * @return         Content with common indentation removed
      */
     public static String removeCommonIndentation(String content) {
         if (content == null || content.isEmpty()) {
             return content;
         }
-        
+
         String[] lines = content.split("\n", -1);
-        
+
         // Find the minimum indentation (excluding empty lines)
         int minIndent = Integer.MAX_VALUE;
         for (String line : lines) {
@@ -37,12 +39,12 @@ public class IndentationUtils {
                 minIndent = Math.min(minIndent, indent);
             }
         }
-        
+
         // If no non-empty lines found or no indentation, return original
         if (minIndent == Integer.MAX_VALUE || minIndent == 0) {
             return content;
         }
-        
+
         // Remove the common indentation from each line
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < lines.length; i++) {
@@ -68,13 +70,13 @@ public class IndentationUtils {
                 // Keep empty lines as-is
                 result.append(line);
             }
-            
+
             // Add newline except for last line
             if (i < lines.length - 1) {
                 result.append('\n');
             }
         }
-        
+
         return result.toString();
     }
 }

@@ -17,8 +17,8 @@ import com.dataliquid.maven.asciidoc.parser.FrontMatterParser;
 import com.dataliquid.maven.asciidoc.util.FilePatternMatcher;
 
 /**
- * Abstract base class for all AsciiDoc-related Mojos.
- * Provides common functionality following DRY principles.
+ * Abstract base class for all AsciiDoc-related Mojos. Provides common
+ * functionality following DRY principles.
  */
 public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
@@ -33,7 +33,7 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
     @Parameter(property = "asciidoc.includes", defaultValue = "**/*.adoc")
     protected String[] includes;
-    
+
     @Parameter(property = "asciidoc.excludes")
     protected String[] excludes;
 
@@ -65,7 +65,7 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
         try {
             List<Path> files = findAsciiDocFiles();
             getLog().info("Found " + files.size() + " AsciiDoc files");
-            
+
             if (!files.isEmpty()) {
                 processFiles(files);
             }
@@ -101,9 +101,7 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
      */
     protected List<Path> findAsciiDocFiles() throws IOException {
         FilePatternMatcher matcher = new FilePatternMatcher(sourceDirectory, includes, excludes);
-        return matcher.getMatchedFiles().stream()
-                .map(File::toPath)
-                .collect(Collectors.toList());
+        return matcher.getMatchedFiles().stream().map(File::toPath).collect(Collectors.toList());
     }
 
     /**
