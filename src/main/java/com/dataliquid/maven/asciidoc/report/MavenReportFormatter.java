@@ -11,12 +11,16 @@ import com.dataliquid.asciidoc.linter.validator.ValidationResult;
 
 /**
  * Maven-specific implementation of ReportFormatter that delegates to the native
- * ConsoleFormatter while routing output through Maven's logging system. This is
- * the CORRECT integration point - implementing the ReportFormatter interface
- * rather than extending ConsoleFormatter. This approach: - Uses the native
- * formatting capabilities without reimplementation - Properly bridges to
- * Maven's logging system - Maintains all advanced features (underlines,
- * suggestions, context) - Avoids reflection and internal API dependencies
+ * ConsoleFormatter while routing output through Maven's logging system.
+ * <p>
+ * This is the CORRECT integration point - implementing the ReportFormatter interface
+ * rather than extending ConsoleFormatter. This approach:
+ * <ul>
+ * <li>Uses the native formatting capabilities without reimplementation</li>
+ * <li>Properly bridges to Maven's logging system</li>
+ * <li>Maintains all advanced features (underlines, suggestions, context)</li>
+ * <li>Avoids reflection and internal API dependencies</li>
+ * </ul>
  */
 public class MavenReportFormatter implements ReportFormatter {
 
@@ -38,8 +42,10 @@ public class MavenReportFormatter implements ReportFormatter {
 
     /**
      * Formats the validation result using the native ConsoleFormatter and routes
-     * the output through Maven's logging system. This method uses Maven's logging
-     * system directly and doesn't require an external writer.
+     * the output through Maven's logging system.
+     * <p>
+     * This method uses Maven's logging system directly and doesn't require
+     * an external writer.
      *
      * @param result The validation result to format
      */
