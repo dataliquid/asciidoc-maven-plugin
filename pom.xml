@@ -70,12 +70,18 @@
             <version>${asciidoctorj.diagram.version}</version>
         </dependency>
         
-        <!-- PlantUML for diagram generation -->
+        <!-- PlantUML processor for AsciidoctorJ -->
         <dependency>
-            <groupId>net.sourceforge.plantuml</groupId>
-            <artifactId>plantuml</artifactId>
-            <version>1.2024.8</version>
-            <scope>test</scope>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj-diagram-plantuml</artifactId>
+            <version>1.2025.3</version>
+        </dependency>
+        
+        <!-- Ditaa processor for AsciidoctorJ -->
+        <dependency>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj-diagram-ditaamini</artifactId>
+            <version>1.0.3</version>
         </dependency>
         
         <dependency>
