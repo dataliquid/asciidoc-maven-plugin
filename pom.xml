@@ -70,6 +70,13 @@
             <version>${asciidoctorj.diagram.version}</version>
         </dependency>
         
+        <!-- PlantUML for diagram generation -->
+        <dependency>
+            <groupId>net.sourceforge.plantuml</groupId>
+            <artifactId>plantuml</artifactId>
+            <version>1.2024.8</version>
+            <scope>test</scope>
+        </dependency>
         
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
