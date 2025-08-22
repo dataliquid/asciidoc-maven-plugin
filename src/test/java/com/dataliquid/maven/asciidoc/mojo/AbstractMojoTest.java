@@ -18,44 +18,44 @@ import org.junit.jupiter.api.io.TempDir;
  * Abstract base class for Mojo tests providing common helper methods and setup.
  */
 public abstract class AbstractMojoTest<T extends AbstractMojo> {
-    
+
     @TempDir
     protected Path tempDir;
-    
+
     protected T mojo;
     protected File sourceDir;
     protected File outputDir;
     protected File workDir;
-    
+
     /**
      * Create the mojo instance to be tested.
      */
     protected abstract T createMojo();
-    
+
     @BeforeEach
     void setUp() throws Exception {
         mojo = createMojo();
         mojo.setLog(new SystemStreamLog());
-        
+
         sourceDir = tempDir.resolve("src").toFile();
         outputDir = tempDir.resolve("target/generated-docs").toFile();
         workDir = tempDir.resolve("target/work").toFile();
         sourceDir.mkdirs();
-        
+
         configureDefaultMojo(mojo);
     }
-    
+
     /**
-     * Configure default values for the mojo.
-     * Override this method to change default configuration.
+     * Configure default values for the mojo. Override this method to change default
+     * configuration.
      */
     protected void configureDefaultMojo(T mojo) throws Exception {
         // Common fields in AbstractAsciiDocMojo
         setField(mojo, "sourceDirectory", sourceDir);
         setField(mojo, "project", createMavenProject());
         setField(mojo, "skip", false);
-        setField(mojo, "includes", new String[]{"*.adoc"});
-        
+        setField(mojo, "includes", new String[] { "*.adoc" });
+
         // Common fields that might be in specific mojos
         setFieldIfExists(mojo, "outputDirectory", outputDir);
         setFieldIfExists(mojo, "workDirectory", workDir);
@@ -63,12 +63,12 @@ public abstract class AbstractMojoTest<T extends AbstractMojo> {
         setFieldIfExists(mojo, "enableDiagrams", false);
         setFieldIfExists(mojo, "enableIncremental", false);
         setFieldIfExists(mojo, "attributes", new HashMap<>());
-        
+
         // Template parameters
         setFieldIfExists(mojo, "templateFile", "templates/partial.st");
         setFieldIfExists(mojo, "outputFormat", "html");
     }
-    
+
     /**
      * Set a field value on the mojo, searching the class hierarchy.
      */
@@ -80,7 +80,7 @@ public abstract class AbstractMojoTest<T extends AbstractMojo> {
         field.setAccessible(true);
         field.set(obj, value);
     }
-    
+
     /**
      * Set a field value if it exists, otherwise ignore.
      */
@@ -91,7 +91,7 @@ public abstract class AbstractMojoTest<T extends AbstractMojo> {
             field.set(obj, value);
         }
     }
-    
+
     /**
      * Find a field in the class hierarchy.
      */
@@ -105,7 +105,7 @@ public abstract class AbstractMojoTest<T extends AbstractMojo> {
         }
         return null;
     }
-    
+
     /**
      * Load a test resource file as a string.
      */
@@ -117,14 +117,14 @@ public abstract class AbstractMojoTest<T extends AbstractMojo> {
             return new String(is.readAllBytes()).trim();
         }
     }
-    
+
     /**
      * Load a file from the filesystem as a string.
      */
     protected String loadFile(File file) throws IOException {
         return Files.readString(file.toPath()).trim();
     }
-    
+
     /**
      * Create a default Maven project for testing.
      */

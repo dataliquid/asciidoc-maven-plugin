@@ -8,8 +8,8 @@ public class DocumentContext {
     private final Map<String, Object> frontMatter;
     private final Map<String, Object> metadata;
 
-    public DocumentContext(String html, Map<String, Object> attributes, 
-                          Map<String, Object> frontMatter, Map<String, Object> metadata) {
+    public DocumentContext(String html, Map<String, Object> attributes, Map<String, Object> frontMatter,
+            Map<String, Object> metadata) {
         this.html = html;
         this.attributes = attributes;
         this.frontMatter = frontMatter;
