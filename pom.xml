@@ -72,14 +72,12 @@
             <version>${asciidoctorj.diagram.version}</version>
         </dependency>
         
-        <!-- PlantUML processor for AsciidoctorJ -->
         <dependency>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctorj-diagram-plantuml</artifactId>
             <version>${asciidoctorj.diagram.plantuml.version}</version>
         </dependency>
         
-        <!-- Ditaa processor for AsciidoctorJ -->
         <dependency>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctorj-diagram-ditaamini</artifactId>
