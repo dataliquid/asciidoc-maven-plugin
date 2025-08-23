@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -30,25 +31,27 @@ import com.dataliquid.maven.asciidoc.report.MavenLogWriter;
 @Mojo(name = "lint")
 public class LinterMojo extends AbstractAsciiDocMojo {
 
+    private static final String TRUE_VALUE = "true";
+
     @Parameter(property = "asciidoc.linter.ruleFile", required = true)
     private File ruleFile;
 
-    @Parameter(property = "asciidoc.linter.failOnError", defaultValue = "true")
+    @Parameter(property = "asciidoc.linter.failOnError", defaultValue = TRUE_VALUE)
     private boolean failOnError;
 
     @Parameter(property = "asciidoc.linter.consoleOutputFormat", defaultValue = "enhanced")
     private String consoleOutputFormat;
 
-    @Parameter(property = "asciidoc.linter.useColors", defaultValue = "true")
+    @Parameter(property = "asciidoc.linter.useColors", defaultValue = TRUE_VALUE)
     private boolean useColors;
 
     @Parameter(property = "asciidoc.linter.contextLines", defaultValue = "2")
     private int contextLines;
 
-    @Parameter(property = "asciidoc.linter.showSuggestions", defaultValue = "true")
+    @Parameter(property = "asciidoc.linter.showSuggestions", defaultValue = TRUE_VALUE)
     private boolean showSuggestions;
 
-    @Parameter(property = "asciidoc.linter.highlightErrors", defaultValue = "true")
+    @Parameter(property = "asciidoc.linter.highlightErrors", defaultValue = TRUE_VALUE)
     private boolean highlightErrors;
 
     @Parameter(property = "asciidoc.linter.showExamples", defaultValue = "false")
@@ -64,7 +67,9 @@ public class LinterMojo extends AbstractAsciiDocMojo {
 
     @Override
     protected void processFiles(List<Path> adocFiles) throws MojoExecutionException, MojoFailureException {
-        getLog().info("Found " + adocFiles.size() + " AsciiDoc files to lint");
+        if (getLog().isInfoEnabled()) {
+            getLog().info("Found " + adocFiles.size() + " AsciiDoc files to lint");
+        }
 
         try {
             // Create linter instance
@@ -75,7 +80,9 @@ public class LinterMojo extends AbstractAsciiDocMojo {
                 throw new MojoExecutionException("Rule file not found: " + ruleFile.getAbsolutePath());
             }
 
-            getLog().info("Loading linter configuration from: " + ruleFile.getAbsolutePath());
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Loading linter configuration from: " + ruleFile.getAbsolutePath());
+            }
             ConfigurationLoader configLoader = new ConfigurationLoader();
             LinterConfiguration linterConfiguration = configLoader.loadConfiguration(ruleFile.toPath());
 
@@ -85,7 +92,9 @@ public class LinterMojo extends AbstractAsciiDocMojo {
 
             // Lint each file
             for (Path file : adocFiles) {
-                getLog().info("Linting: " + file);
+                if (getLog().isInfoEnabled()) {
+                    getLog().info("Linting: " + file);
+                }
                 ValidationResult result = linter.validateFile(file, linterConfiguration);
 
                 // Process results with enhanced formatter
@@ -110,7 +119,7 @@ public class LinterMojo extends AbstractAsciiDocMojo {
     private OutputConfiguration createOutputConfiguration() throws IOException {
         OutputConfigurationLoader outputLoader = new OutputConfigurationLoader();
 
-        OutputFormat format = OutputFormat.valueOf(consoleOutputFormat.toUpperCase());
+        OutputFormat format = OutputFormat.valueOf(consoleOutputFormat.toUpperCase(Locale.ROOT));
         OutputConfiguration baseConfig = outputLoader.loadPredefinedConfiguration(format);
         SummaryConfig summaryConfig = baseConfig.getSummary();
         boolean showLineNumbers = baseConfig.getDisplay().isShowLineNumbers();

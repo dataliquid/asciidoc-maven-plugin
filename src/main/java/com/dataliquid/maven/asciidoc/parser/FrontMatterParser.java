@@ -36,7 +36,9 @@ public class FrontMatterParser {
                 return jsonMapper.readValue(content, new TypeReference<Map<String, Object>>() {
                 });
             } catch (Exception jsonException) {
-                log.debug("Failed to parse front matter as YAML or JSON: " + jsonException.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to parse front matter as YAML or JSON: " + jsonException.getMessage());
+                }
                 return new HashMap<>();
             }
         }

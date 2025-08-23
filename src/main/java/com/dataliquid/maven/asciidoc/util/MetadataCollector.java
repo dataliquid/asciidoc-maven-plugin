@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.dataliquid.maven.asciidoc.model.DocumentMetadata;
 
@@ -32,7 +33,7 @@ public class MetadataCollector {
      * @return Map representing the entire collection
      */
     public Map<String, Object> toJson() {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new ConcurrentHashMap<>();
         result.put("documents", documents);
         result.put("timestamp", Instant.now().toString());
         result.put("count", documents.size());

@@ -42,12 +42,16 @@ public class DetailedSTErrorListener implements STErrorListener {
 
     @Override
     public void IOError(STMessage msg) {
-        log.error("StringTemplate IO error in " + templateName + ": " + msg.toString());
+        if (log.isErrorEnabled()) {
+            log.error("StringTemplate IO error in " + templateName + ": " + msg.toString());
+        }
     }
 
     @Override
     public void internalError(STMessage msg) {
-        log.error("StringTemplate internal error in " + templateName + ": " + msg.toString());
+        if (log.isErrorEnabled()) {
+            log.error("StringTemplate internal error in " + templateName + ": " + msg.toString());
+        }
     }
 
     /**
@@ -59,7 +63,9 @@ public class DetailedSTErrorListener implements STErrorListener {
      */
     private void logTemplateError(STMessage msg, String errorType) {
         String errorMsg = msg.toString();
-        log.error("StringTemplate " + errorType + " error in " + templateName + ": " + errorMsg);
+        if (log.isErrorEnabled()) {
+            log.error("StringTemplate " + errorType + " error in " + templateName + ": " + errorMsg);
+        }
 
         if (templateSource != null && !templateSource.isEmpty()) {
             String[] lines = templateSource.split("\n");
@@ -72,9 +78,15 @@ public class DetailedSTErrorListener implements STErrorListener {
             if (msg.self != null && msg.self.impl != null) {
                 try {
                     // ST internal structure may have position info
-                    log.debug("Template implementation class: " + msg.self.impl.getClass().getName());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Template implementation class: " + msg.self.impl.getClass().getName());
+                    }
                 } catch (Exception e) {
-                    // Ignore errors accessing template internals
+                    // Ignore errors accessing template internals - expected for internal
+                    // StringTemplate structures
+                    if (log.isDebugEnabled()) {
+                        log.debug("Failed to access template internals (expected): " + e.getMessage());
+                    }
                 }
             }
 
@@ -88,7 +100,10 @@ public class DetailedSTErrorListener implements STErrorListener {
                         line = Integer.parseInt(parts[0]);
                         charPos = Integer.parseInt(parts[1]);
                     } catch (NumberFormatException e) {
-                        // Ignore parse errors
+                        // Ignore parse errors - error message format may vary
+                        if (log.isDebugEnabled()) {
+                            log.debug("Could not parse line:column from cause message (expected): " + e.getMessage());
+                        }
                     }
                 }
             }
@@ -103,7 +118,12 @@ public class DetailedSTErrorListener implements STErrorListener {
                         line = Integer.parseInt(runtimeMatcher.group(1));
                         charPos = Integer.parseInt(runtimeMatcher.group(2));
                     } catch (NumberFormatException e) {
-                        // Ignore parse errors
+                        // Ignore parse errors - runtime error message format may vary
+                        if (log.isDebugEnabled()) {
+                            log
+                                    .debug("Could not parse line:column from runtime error message (expected): "
+                                            + e.getMessage());
+                        }
                     }
                 } else {
                     // Original pattern for compile errors
@@ -114,7 +134,12 @@ public class DetailedSTErrorListener implements STErrorListener {
                             line = Integer.parseInt(matcher.group(1));
                             charPos = Integer.parseInt(matcher.group(2));
                         } catch (NumberFormatException e) {
-                            // Ignore parse errors
+                            // Ignore parse errors - compile error message format may vary
+                            if (log.isDebugEnabled()) {
+                                log
+                                        .debug("Could not parse line:column from compile error message (expected): "
+                                                + e.getMessage());
+                            }
                         }
                     }
                 }
@@ -122,41 +147,63 @@ public class DetailedSTErrorListener implements STErrorListener {
 
             // Show context if we have line information
             if (line > 0 && line <= lines.length) {
-                log.error("Template error context in " + templateName + ":");
+                if (log.isErrorEnabled()) {
+                    log.error("Template error context in " + templateName + ":");
+                }
 
                 // Show 3 lines before and after
                 int startLine = Math.max(0, line - 4);
                 int endLine = Math.min(lines.length, line + 3);
 
+                // Process error line context - pre-calculate pointer info to avoid object
+                // instantiation in loop
+                String errorPointerString = null;
+                if (charPos > 0) {
+                    // Pre-create StringBuilder outside of any loops
+                    StringBuilder pointer = new StringBuilder();
+
+                    // Find the error line first
+                    for (int i = startLine; i < endLine; i++) {
+                        if (i == line - 1) {
+                            String lineMarker = " >>> ";
+                            String lineNumberPrefix = String.format("%3d%s", i + 1, lineMarker);
+                            int prefixLength = lineNumberPrefix.length();
+
+                            // Clear and build the pointer line
+                            pointer.setLength(0);
+                            // Add spaces for the line number prefix
+                            for (int j = 0; j < prefixLength; j++) {
+                                pointer.append(' ');
+                            }
+
+                            // Add spaces up to the error position in the actual line content
+                            // charPos is 1-based, so we need charPos-1 spaces
+                            for (int j = 0; j < charPos - 1; j++) {
+                                if (j < lines[i].length() && lines[i].charAt(j) == '\t') {
+                                    // Preserve tabs for proper alignment
+                                    pointer.append('\t');
+                                } else {
+                                    pointer.append(' ');
+                                }
+                            }
+                            pointer.append("^ Error here");
+                            errorPointerString = pointer.toString();
+                            break;
+                        }
+                    }
+                }
+
                 for (int i = startLine; i < endLine; i++) {
                     String lineMarker = (i == line - 1) ? " >>> " : "     ";
-                    log.error(String.format("%3d%s%s", i + 1, lineMarker, lines[i]));
+                    if (log.isErrorEnabled()) {
+                        log.error(String.format("%3d%s%s", i + 1, lineMarker, lines[i]));
+                    }
 
                     // Show column indicator for error line
-                    if (i == line - 1 && charPos > 0) {
-                        // Calculate the actual position including the line number prefix
-                        String lineNumberPrefix = String.format("%3d%s", i + 1, lineMarker);
-                        int prefixLength = lineNumberPrefix.length();
-
-                        // Build the pointer line
-                        StringBuilder pointer = new StringBuilder();
-                        // Add spaces for the line number prefix
-                        for (int j = 0; j < prefixLength; j++) {
-                            pointer.append(" ");
+                    if (i == line - 1 && charPos > 0 && errorPointerString != null) {
+                        if (log.isErrorEnabled()) {
+                            log.error(errorPointerString);
                         }
-
-                        // Add spaces up to the error position in the actual line content
-                        // charPos is 1-based, so we need charPos-1 spaces
-                        for (int j = 0; j < charPos - 1; j++) {
-                            if (j < lines[i].length() && lines[i].charAt(j) == '\t') {
-                                // Preserve tabs for proper alignment
-                                pointer.append("\t");
-                            } else {
-                                pointer.append(" ");
-                            }
-                        }
-                        pointer.append("^ Error here");
-                        log.error(pointer.toString());
                     }
                 }
             }

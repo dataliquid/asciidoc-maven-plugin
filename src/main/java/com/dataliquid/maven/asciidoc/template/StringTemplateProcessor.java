@@ -34,7 +34,9 @@ public class StringTemplateProcessor {
             // File-based template
             this.baseDir = templateFile.getParent() != null ? templateFile.getParent() : ".";
 
-            log.debug("Initializing StringTemplate with file-based template: " + templatePath);
+            if (log.isDebugEnabled()) {
+                log.debug("Initializing StringTemplate with file-based template: " + templatePath);
+            }
 
             // Load the template file
             if (templatePath.endsWith(".stg")) {
@@ -71,7 +73,9 @@ public class StringTemplateProcessor {
             int lastSlash = templatePath.lastIndexOf('/');
             this.baseDir = lastSlash > 0 ? templatePath.substring(0, lastSlash) : "";
 
-            log.debug("Initializing StringTemplate with classpath resource: " + templatePath);
+            if (log.isDebugEnabled()) {
+                log.debug("Initializing StringTemplate with classpath resource: " + templatePath);
+            }
 
             // Load from classpath
             if (templatePath.endsWith(".stg")) {
@@ -80,8 +84,7 @@ public class StringTemplateProcessor {
                 this.templateGroup.delimiterStopChar = '$';
             } else {
                 // For individual template files from classpath, need to read and convert
-                try {
-                    InputStream is = getClass().getResourceAsStream("/" + templatePath);
+                try (InputStream is = getClass().getResourceAsStream("/" + templatePath)) {
                     if (is == null) {
                         throw new IllegalArgumentException("Template not found in classpath: " + templatePath);
                     }
@@ -118,7 +121,9 @@ public class StringTemplateProcessor {
             throw new IllegalArgumentException("Template directory does not exist: " + templateDir);
         }
 
-        log.debug("Initializing StringTemplate with template directory: " + templateDir);
+        if (log.isDebugEnabled()) {
+            log.debug("Initializing StringTemplate with template directory: " + templateDir);
+        }
 
         // For directory-based templates, we'll need to load individual templates
         // StringTemplate doesn't have a direct directory resolver
@@ -126,15 +131,17 @@ public class StringTemplateProcessor {
     }
 
     public String process(String templateName, DocumentContext context) {
-        if (templateName == null || templateName.trim().isEmpty()) {
+        if (isBlank(templateName)) {
             throw new IllegalArgumentException("Template name cannot be null or empty");
         }
 
-        log.debug("Processing template: " + templateName);
+        if (log.isDebugEnabled()) {
+            log.debug("Processing template: " + templateName);
+        }
 
         try {
             ST template;
-            String templateContent = null;
+            String templateContent;
 
             if (templateGroup != null) {
                 // Get template from group - always use "partial" as the template name
@@ -168,20 +175,26 @@ public class StringTemplateProcessor {
         } catch (IOException e) {
             throw new RuntimeException("Failed to load template: " + templateName, e);
         } catch (STException e) {
-            log.error("Template syntax error in: " + templateName, e);
+            if (log.isErrorEnabled()) {
+                log.error("Template syntax error in: " + templateName, e);
+            }
             throw new RuntimeException("Template processing failed for " + templateName + ": " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error processing template: " + templateName, e);
+            if (log.isErrorEnabled()) {
+                log.error("Error processing template: " + templateName, e);
+            }
             throw new RuntimeException("Template processing failed: " + e.getMessage(), e);
         }
     }
 
     public String processInline(String templateContent, DocumentContext context) {
-        if (templateContent == null || templateContent.trim().isEmpty()) {
+        if (isBlank(templateContent)) {
             throw new IllegalArgumentException("Template content cannot be null or empty");
         }
 
-        log.debug("Processing inline template");
+        if (log.isDebugEnabled()) {
+            log.debug("Processing inline template");
+        }
 
         // Apply smart indentation removal that preserves relative indentation
         String processedContent = IndentationUtils.removeCommonIndentation(templateContent);
@@ -209,12 +222,29 @@ public class StringTemplateProcessor {
 
             return template.render();
         } catch (STException e) {
-            log.error("Template syntax error in inline template", e);
+            if (log.isErrorEnabled()) {
+                log.error("Template syntax error in inline template", e);
+            }
             throw new RuntimeException("Inline template processing failed: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error processing inline template", e);
+            if (log.isErrorEnabled()) {
+                log.error("Error processing inline template", e);
+            }
             throw new RuntimeException("Inline template processing failed: " + e.getMessage(), e);
         }
+    }
+
+    private static boolean isBlank(String str) {
+        if (str == null || str.length() == 0) {
+            return true;
+        }
+        final char SPACE_CHAR = ' ';
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) > SPACE_CHAR) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
