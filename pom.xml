@@ -34,6 +34,8 @@
         <maven.version>3.9.11</maven.version>
         <asciidoctorj.version>3.0.0</asciidoctorj.version>
         <asciidoctorj.diagram.version>3.0.1</asciidoctorj.diagram.version>
+        <asciidoctorj.diagram.plantuml.version>1.2025.3</asciidoctorj.diagram.plantuml.version>
+        <asciidoctorj.diagram.ditaamini.version>1.0.3</asciidoctorj.diagram.ditaamini.version>
         <jackson.version>2.19.2</jackson.version>
         <maven.plugin.tools.version>3.15.1</maven.plugin.tools.version>
     </properties>
@@ -74,14 +76,14 @@
         <dependency>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctorj-diagram-plantuml</artifactId>
-            <version>1.2025.3</version>
+            <version>${asciidoctorj.diagram.plantuml.version}</version>
         </dependency>
         
         <!-- Ditaa processor for AsciidoctorJ -->
         <dependency>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctorj-diagram-ditaamini</artifactId>
-            <version>1.0.3</version>
+            <version>${asciidoctorj.diagram.ditaamini.version}</version>
         </dependency>
         
         <dependency>
