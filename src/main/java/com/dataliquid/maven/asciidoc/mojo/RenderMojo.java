@@ -179,11 +179,11 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             allAttributes.put("diagram-cachedir", new File(workDirectory, "diagram-cache").getAbsolutePath());
         }
 
-        // Build document attributes
         AttributesBuilder attrBuilder = Attributes.builder();
         for (Map.Entry<String, Object> entry : allAttributes.entrySet()) {
             attrBuilder.attribute(entry.getKey(), entry.getValue());
         }
+        // Enable AsciidoctorJ's built-in front matter handling
         Attributes documentAttributes = attrBuilder.skipFrontMatter(true).build();
 
         OptionsBuilder optionsBuilder = Options
