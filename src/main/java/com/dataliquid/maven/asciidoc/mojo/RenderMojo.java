@@ -165,7 +165,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         }
     }
 
-    private String convertAsciiDocToHtml(String content, Path adocFile) throws IOException {
+    private String convertAsciiDocToHtml(String content, Path adocFile) throws IOException, MojoExecutionException {
         Map<String, Object> allAttributes = new HashMap<>(attributes);
 
         if (enableDiagrams) {
@@ -183,7 +183,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
         OptionsBuilder optionsBuilder = Options
                 .builder()
-                .safe(SafeMode.UNSAFE)
+                .safe(getSafeMode())
                 .mkDirs(true)
                 .attributes(documentAttributes);
 
@@ -266,7 +266,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         getLog().info("Generated: " + outputPath);
     }
 
-    private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException {
+    private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException, MojoExecutionException {
         Map<String, Object> metadata = new HashMap<>();
 
         String content = Files.readString(adocFile);
@@ -285,7 +285,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
         Attributes documentAttributes = Attributes.builder().attributes(allAttributes).skipFrontMatter(true).build();
 
-        Options options = Options.builder().safe(SafeMode.UNSAFE).attributes(documentAttributes).build();
+        Options options = Options.builder().safe(getSafeMode()).attributes(documentAttributes).build();
 
         Document document = getAsciidoctor().load(content, options);
 

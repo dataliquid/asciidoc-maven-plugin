@@ -95,6 +95,11 @@ A Maven plugin for processing AsciiDoc files with advanced features.
 |`true`
 |Enable incremental builds
 
+|`safeMode`
+|String
+|`SAFE`
+|AsciidoctorJ safe mode (UNSAFE, SAFE, SERVER, SECURE)
+
 |`ruleFile`
 |File
 |_required for lint_
