@@ -12,7 +12,7 @@ public class FilePatternMatcher {
     private final String[] includes;
     private final String[] excludes;
 
-    public FilePatternMatcher(File baseDirectory, String[] includes, String[] excludes) {
+    public FilePatternMatcher(File baseDirectory, String[] includes, String... excludes) {
         this.baseDirectory = baseDirectory;
         this.includes = includes != null ? includes : new String[] { "**/*.adoc" };
         this.excludes = excludes != null ? excludes : new String[0];

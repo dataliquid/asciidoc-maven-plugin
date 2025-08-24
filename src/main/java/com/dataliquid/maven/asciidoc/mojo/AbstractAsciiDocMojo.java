@@ -56,7 +56,9 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
             return;
         }
 
-        getLog().info("Starting " + getMojoName() + "...");
+        if (getLog().isInfoEnabled()) {
+            getLog().info("Starting " + getMojoName() + "...");
+        }
 
         if (!validateSourceDirectory()) {
             return;
@@ -64,7 +66,9 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
         try {
             List<Path> files = findAsciiDocFiles();
-            getLog().info("Found " + files.size() + " AsciiDoc files");
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Found " + files.size() + " AsciiDoc files");
+            }
 
             if (!files.isEmpty()) {
                 processFiles(files);
@@ -79,7 +83,9 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
      */
     protected boolean shouldSkip() {
         if (skip) {
-            getLog().info("Skipping " + getMojoName());
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Skipping " + getMojoName());
+            }
             return true;
         }
         return false;
@@ -90,7 +96,9 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
      */
     protected boolean validateSourceDirectory() {
         if (!sourceDirectory.exists()) {
-            getLog().warn("Source directory does not exist: " + sourceDirectory);
+            if (getLog().isWarnEnabled()) {
+                getLog().warn("Source directory does not exist: " + sourceDirectory);
+            }
             return false;
         }
         return true;

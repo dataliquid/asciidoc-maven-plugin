@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.io.IOException;
 
@@ -39,7 +40,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
     private boolean failOnNoFiles;
 
     @Parameter(property = "asciidoc.attributes")
-    private Map<String, Object> attributes = new HashMap<>();
+    private Map<String, Object> attributes = new ConcurrentHashMap<>();
 
     @Parameter(property = "asciidoc.enableDiagrams", defaultValue = "true")
     private boolean enableDiagrams;
@@ -80,7 +81,9 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             }
 
             if (enableDiagrams) {
-                getLog().info("Diagram support enabled (format: " + diagramFormat + ")");
+                if (getLog().isInfoEnabled()) {
+                    getLog().info("Diagram support enabled (format: " + diagramFormat + ")");
+                }
                 getAsciidoctor().requireLibrary("asciidoctor-diagram");
             }
 
@@ -105,7 +108,9 @@ public class RenderMojo extends AbstractAsciiDocMojo {
                 boolean shouldProcess = true;
                 if (incrementalManager != null) {
                     if (!incrementalManager.needsRegeneration(adocFile, outputPath)) {
-                        getLog().debug("Skipping unchanged file: " + adocFile);
+                        if (getLog().isDebugEnabled()) {
+                            getLog().debug("Skipping unchanged file: " + adocFile);
+                        }
                         skippedCount++;
                         shouldProcess = false;
                     }
@@ -127,7 +132,9 @@ public class RenderMojo extends AbstractAsciiDocMojo {
                 incrementalManager.saveHashCache();
 
                 if (skippedCount > 0) {
-                    getLog().info("Skipped " + skippedCount + " unchanged files");
+                    if (getLog().isInfoEnabled()) {
+                        getLog().info("Skipped " + skippedCount + " unchanged files");
+                    }
                 }
             }
 
@@ -138,7 +145,9 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
     private boolean processFile(Path adocFile) {
         try {
-            getLog().info("Processing: " + adocFile);
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Processing: " + adocFile);
+            }
 
             String content = Files.readString(adocFile);
 
@@ -160,13 +169,15 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             return true;
 
         } catch (Exception e) {
-            getLog().error("Error processing file: " + adocFile, e);
+            if (getLog().isErrorEnabled()) {
+                getLog().error("Error processing file: " + adocFile, e);
+            }
             return false;
         }
     }
 
     private String convertAsciiDocToHtml(String content, Path adocFile) throws IOException {
-        Map<String, Object> allAttributes = new HashMap<>(attributes);
+        Map<String, Object> allAttributes = new ConcurrentHashMap<>(attributes);
 
         if (enableDiagrams) {
             allAttributes.put("diagram-format", diagramFormat);
@@ -196,8 +207,10 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         // Convert to HTML using options with custom attributes
         String generatedHtml = getAsciidoctor().convert(content, options);
 
-        if (generatedHtml == null || generatedHtml.trim().isEmpty()) {
-            getLog().error("Failed to convert " + adocFile + " - AsciidoctorJ returned null or empty content");
+        if (generatedHtml == null || isBlank(generatedHtml)) {
+            if (getLog().isErrorEnabled()) {
+                getLog().error("Failed to convert " + adocFile + " - AsciidoctorJ returned null or empty content");
+            }
             return null;
         }
 
@@ -243,9 +256,11 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
     private void writeOutputFile(Path adocFile, String content) throws IOException {
         Path absoluteRelativePath = sourceDirectory.toPath().toAbsolutePath().relativize(adocFile.toAbsolutePath());
-        getLog().debug("Source dir: " + sourceDirectory.toPath().toAbsolutePath());
-        getLog().debug("Adoc file: " + adocFile.toAbsolutePath());
-        getLog().debug("Relative path: " + absoluteRelativePath);
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Source dir: " + sourceDirectory.toPath().toAbsolutePath());
+            getLog().debug("Adoc file: " + adocFile.toAbsolutePath());
+            getLog().debug("Relative path: " + absoluteRelativePath);
+        }
 
         String outputFileName;
         String extension = "." + outputFormat;
@@ -257,22 +272,26 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             outputFileName = absoluteRelativePath.toString().replaceAll("\\.adoc$", extension);
         }
 
-        getLog().debug("Output filename: " + outputFileName);
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Output filename: " + outputFileName);
+        }
 
         Path outputPath = outputDirectory.toPath().resolve(outputFileName);
         Files.createDirectories(outputPath.getParent());
         Files.writeString(outputPath, content);
 
-        getLog().info("Generated: " + outputPath);
+        if (getLog().isInfoEnabled()) {
+            getLog().info("Generated: " + outputPath);
+        }
     }
 
     private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException {
-        Map<String, Object> metadata = new HashMap<>();
+        Map<String, Object> metadata = new ConcurrentHashMap<>();
 
         String content = Files.readString(adocFile);
 
         // Use AsciidoctorJ to parse the document
-        Map<String, Object> allAttributes = new HashMap<>(attributes);
+        Map<String, Object> allAttributes = new ConcurrentHashMap<>(attributes);
 
         // Prevent diagram generation in project root (same as in convertAsciiDocToHtml)
         if (enableDiagrams) {
@@ -296,17 +315,17 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         // Add front matter (if exists)
         if (document != null) {
             String frontMatter = (String) document.getAttributes().get("front-matter");
-            if (frontMatter != null && !frontMatter.trim().isEmpty()) {
+            if (frontMatter != null && !isBlank(frontMatter)) {
                 Map<String, Object> frontMatterData = getFrontMatterParser().parse(frontMatter);
                 metadata.put("frontmatter", frontMatterData);
             }
 
             // Add document attributes
-            Map<String, Object> attributes = new HashMap<>();
+            Map<String, Object> attributes = new ConcurrentHashMap<>();
             document.getAttributes().forEach((key, value) -> {
                 // Filter out internal attributes
-                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !key.equals("docfile")
-                        && !key.equals("docdir") && !key.equals("front-matter") && !key.equals("filetype")) {
+                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !"docfile".equals(key)
+                        && !"docdir".equals(key) && !"front-matter".equals(key) && !"filetype".equals(key)) {
                     attributes.put(key, value);
                 }
             });
@@ -317,5 +336,18 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         }
 
         return metadata;
+    }
+
+    private static boolean isBlank(String str) {
+        if (str == null || str.length() == 0) {
+            return true;
+        }
+        final char SPACE_CHAR = ' ';
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) > SPACE_CHAR) {
+                return false;
+            }
+        }
+        return true;
     }
 }

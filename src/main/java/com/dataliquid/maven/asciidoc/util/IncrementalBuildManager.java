@@ -18,7 +18,6 @@ public class IncrementalBuildManager {
     private static final String SHA_256_ALGORITHM = "SHA-256";
     private final File workDirectory;
     private final Properties hashCache;
-    private final MessageDigest digest;
     private final Log log;
 
     public IncrementalBuildManager(File workDirectory) throws NoSuchAlgorithmException {
@@ -28,7 +27,6 @@ public class IncrementalBuildManager {
     public IncrementalBuildManager(File workDirectory, Log log) throws NoSuchAlgorithmException {
         this.workDirectory = workDirectory;
         this.hashCache = new Properties();
-        this.digest = MessageDigest.getInstance(SHA_256_ALGORITHM);
         this.log = log;
         loadHashCache();
     }
@@ -39,7 +37,9 @@ public class IncrementalBuildManager {
             try {
                 hashCache.load(Files.newInputStream(hashFile.toPath()));
             } catch (IOException e) {
-                log.debug("Failed to load hash cache, starting with empty cache: " + e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to load hash cache, starting with empty cache: " + e.getMessage());
+                }
             }
         }
     }
@@ -52,7 +52,9 @@ public class IncrementalBuildManager {
             }
             hashCache.store(Files.newOutputStream(hashFile.toPath()), "AsciiDoc file hashes for incremental build");
         } catch (IOException e) {
-            log.warn("Failed to save hash cache: " + e.getMessage());
+            if (log.isWarnEnabled()) {
+                log.warn("Failed to save hash cache: " + e.getMessage());
+            }
         }
     }
 
@@ -82,10 +84,11 @@ public class IncrementalBuildManager {
 
     private String calculateFileHash(Path file) {
         try {
+            MessageDigest digest = MessageDigest.getInstance(SHA_256_ALGORITHM);
             byte[] fileContent = Files.readAllBytes(file);
             byte[] hashBytes = digest.digest(fileContent);
             return bytesToHex(hashBytes);
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             return null;
         }
     }

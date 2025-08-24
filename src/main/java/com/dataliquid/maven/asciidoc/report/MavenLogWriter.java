@@ -20,6 +20,7 @@ public class MavenLogWriter extends PrintWriter {
     private static final Pattern ERROR_LINE = Pattern.compile("^\\[ERROR\\]|^ERROR:");
     private static final Pattern WARN_LINE = Pattern.compile("^\\[WARN\\]|^WARNING:");
     private static final Pattern INFO_LINE = Pattern.compile("^\\[INFO\\]");
+    private static final String FALSE_VALUE = "false";
 
     private final Log mavenLog;
     private final boolean stripAnsi;
@@ -128,7 +129,7 @@ public class MavenLogWriter extends PrintWriter {
 
         // Check for MAVEN_COLOR property
         String mavenColor = System.getProperty("maven.color", System.getenv("MAVEN_COLOR"));
-        if ("false".equalsIgnoreCase(mavenColor)) {
+        if (FALSE_VALUE.equalsIgnoreCase(mavenColor)) {
             return false;
         }
 

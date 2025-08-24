@@ -8,7 +8,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,7 +69,9 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         for (Path adocFile : adocFiles) {
             try {
                 String relativePath = sourceDirectory.toPath().relativize(adocFile).toString();
-                getLog().info("Processing file: " + relativePath);
+                if (getLog().isInfoEnabled()) {
+                    getLog().info("Processing file: " + relativePath);
+                }
 
                 // Collect all metadata (front matter + attributes)
                 Map<String, Object> allMetadata = collectAllMetadata(adocFile);
@@ -136,7 +140,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
     }
 
     private SpecVersion.VersionFlag getSchemaVersion() throws MojoExecutionException {
-        return switch (schemaVersion.toUpperCase()) {
+        return switch (schemaVersion.toUpperCase(Locale.ROOT)) {
         case "V4" -> SpecVersion.VersionFlag.V4;
         case "V6" -> SpecVersion.VersionFlag.V6;
         case "V7" -> SpecVersion.VersionFlag.V7;
@@ -148,12 +152,12 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
     }
 
     private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException {
-        Map<String, Object> metadata = new HashMap<>();
+        Map<String, Object> metadata = new ConcurrentHashMap<>();
 
         String content = Files.readString(adocFile);
 
         // Use AsciidoctorJ to parse the document
-        Map<String, Object> allAttributes = new HashMap<>();
+        Map<String, Object> allAttributes = new ConcurrentHashMap<>();
 
         // Use temp directory for diagrams during validation to avoid polluting project
         File tempImagesDir = new File(System.getProperty("java.io.tmpdir"), "asciidoc-validate-images");
@@ -172,18 +176,18 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
         // Add front matter (if exists)
         String frontMatter = (String) document.getAttributes().get("front-matter");
-        if (frontMatter != null && !frontMatter.trim().isEmpty()) {
+        if (frontMatter != null && !isBlank(frontMatter)) {
             Map<String, Object> frontMatterData = getFrontMatterParser().parse(frontMatter);
             metadata.put("frontmatter", frontMatterData);
         }
 
         // Add document attributes if requested
         if (includeAttributes) {
-            Map<String, Object> attributes = new HashMap<>();
+            Map<String, Object> attributes = new ConcurrentHashMap<>();
             document.getAttributes().forEach((key, value) -> {
                 // Filter out internal attributes
-                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !key.equals("docfile")
-                        && !key.equals("docdir") && !key.equals("front-matter") && !key.equals("filetype")) {
+                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !"docfile".equals(key)
+                        && !"docdir".equals(key) && !"front-matter".equals(key) && !"filetype".equals(key)) {
                     attributes.put(key, value);
                 }
             });
@@ -203,15 +207,21 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
         for (Map.Entry<Path, List<ValidationError>> fileErrorsEntry : errorsByFile.entrySet()) {
             getLog().error("");
-            getLog().error("File: " + fileErrorsEntry.getKey());
+            if (getLog().isErrorEnabled()) {
+                getLog().error("File: " + fileErrorsEntry.getKey());
+            }
 
             for (ValidationError error : fileErrorsEntry.getValue()) {
-                getLog().error("  - [" + error.getType() + "] " + error.getMessage());
+                if (getLog().isErrorEnabled()) {
+                    getLog().error("  - [" + error.getType() + "] " + error.getMessage());
+                }
             }
         }
 
         getLog().error("");
-        getLog().error("Total errors: " + errors.size() + " in " + errorsByFile.size() + " file(s)");
+        if (getLog().isErrorEnabled()) {
+            getLog().error("Total errors: " + errors.size() + " in " + errorsByFile.size() + " file(s)");
+        }
     }
 
     private List<ValidationError> validate() {
@@ -229,7 +239,9 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
             Set<ValidationMessage> validationMessages = schema.validate(metadataNode);
 
             if (!validationMessages.isEmpty()) {
-                getLog().info("Validation found " + validationMessages.size() + " issues");
+                if (getLog().isInfoEnabled()) {
+                    getLog().info("Validation found " + validationMessages.size() + " issues");
+                }
                 for (ValidationMessage validationMessage : validationMessages) {
                     errors
                             .add(new ValidationError(Paths.get("VALIDATION"), "SCHEMA_VALIDATION",
@@ -237,7 +249,9 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
                 }
             }
 
-            getLog().info("Validation completed: " + metadataCollector.size() + " documents validated");
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Validation completed: " + metadataCollector.size() + " documents validated");
+            }
 
         } catch (Exception e) {
             errors
@@ -262,8 +276,25 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
         Files.writeString(metadataExportFile.toPath(), jsonOutput);
 
-        getLog().info("Metadata exported to: " + metadataExportFile.getAbsolutePath());
-        getLog().info("Exported metadata for " + metadataCollector.size() + " documents");
+        if (getLog().isInfoEnabled()) {
+            getLog().info("Metadata exported to: " + metadataExportFile.getAbsolutePath());
+        }
+        if (getLog().isInfoEnabled()) {
+            getLog().info("Exported metadata for " + metadataCollector.size() + " documents");
+        }
+    }
+
+    private static boolean isBlank(String str) {
+        if (str == null || str.length() == 0) {
+            return true;
+        }
+        final char SPACE_CHAR = ' ';
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) > SPACE_CHAR) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

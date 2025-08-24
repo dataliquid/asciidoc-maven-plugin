@@ -5,6 +5,10 @@ package com.dataliquid.maven.asciidoc.util;
  */
 public class IndentationUtils {
 
+    private static final char SPACE_CHAR = ' ';
+    private static final char TAB_CHAR = '\t';
+    private static final int TAB_WIDTH = 4;
+
     /**
      * Removes common leading indentation from all lines while preserving relative
      * indentation. This is similar to stripIndent() but specifically designed for
@@ -24,14 +28,14 @@ public class IndentationUtils {
         // Find the minimum indentation (excluding empty lines)
         int minIndent = Integer.MAX_VALUE;
         for (String line : lines) {
-            if (!line.trim().isEmpty()) {
+            if (!isBlank(line)) {
                 int indent = 0;
                 for (char c : line.toCharArray()) {
-                    if (c == ' ') {
+                    if (c == SPACE_CHAR) {
                         indent++;
-                    } else if (c == '\t') {
-                        // Count tab as 4 spaces
-                        indent += 4;
+                    } else if (c == TAB_CHAR) {
+                        // Count tab as specified tab width
+                        indent += TAB_WIDTH;
                     } else {
                         break;
                     }
@@ -49,17 +53,17 @@ public class IndentationUtils {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (!line.trim().isEmpty()) {
+            if (!isBlank(line)) {
                 // Remove minIndent worth of spaces/tabs
                 int removed = 0;
                 int j = 0;
                 while (removed < minIndent && j < line.length()) {
                     char c = line.charAt(j);
-                    if (c == ' ') {
+                    if (c == SPACE_CHAR) {
                         removed++;
                         j++;
-                    } else if (c == '\t') {
-                        removed += 4;
+                    } else if (c == TAB_CHAR) {
+                        removed += TAB_WIDTH;
                         j++;
                     } else {
                         break;
@@ -78,5 +82,17 @@ public class IndentationUtils {
         }
 
         return result.toString();
+    }
+
+    private static boolean isBlank(String str) {
+        if (str == null || str.length() == 0) {
+            return true;
+        }
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) > SPACE_CHAR) {
+                return false;
+            }
+        }
+        return true;
     }
 }
