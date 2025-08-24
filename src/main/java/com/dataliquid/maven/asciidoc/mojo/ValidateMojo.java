@@ -17,6 +17,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.asciidoctor.Attributes;
+import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.Options;
 import org.asciidoctor.SafeMode;
 import org.asciidoctor.ast.Document;
@@ -160,7 +161,11 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         tempImagesDir.mkdirs();
         allAttributes.put("imagesoutdir", tempImagesDir.getAbsolutePath());
 
-        Attributes documentAttributes = Attributes.builder().attributes(allAttributes).skipFrontMatter(true).build();
+        AttributesBuilder attrBuilder = Attributes.builder();
+        for (Map.Entry<String, Object> entry : allAttributes.entrySet()) {
+            attrBuilder.attribute(entry.getKey(), entry.getValue());
+        }
+        Attributes documentAttributes = attrBuilder.skipFrontMatter(true).build();
 
         Options options = Options.builder().safe(SafeMode.UNSAFE).attributes(documentAttributes).build();
 
