@@ -55,7 +55,7 @@ public abstract class AbstractMojoTest<T extends AbstractMojo> {
         setField(mojo, "project", createMavenProject());
         setField(mojo, "skip", false);
         setField(mojo, "includes", new String[] { "*.adoc" });
-        setField(mojo, "safeMode", "SAFE");
+        setField(mojo, "safeMode", "UNSAFE"); // Use UNSAFE in tests to allow full functionality
 
         // Common fields that might be in specific mojos
         setFieldIfExists(mojo, "outputDirectory", outputDir);
