@@ -28,7 +28,7 @@ public class ValidateMojoTest extends AbstractMojoTest<ValidateMojo> {
         File exportFile = new File(outputDir, "metadata-export.json");
         File expectedFile = new File(testResourceDir.toFile(), "expected.json");
 
-        ValidateMojo mojo = createMojo();
+        // Use the mojo from the parent class which is already configured
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "metadataExportFile", exportFile);
         setField(mojo, "includeAttributes", false); // Don't include all attributes for cleaner test
@@ -57,7 +57,7 @@ public class ValidateMojoTest extends AbstractMojoTest<ValidateMojo> {
         File testSourceDir = testResourceDir.toFile();
         File schemaFile = new File(testSourceDir, "schema.json");
 
-        ValidateMojo mojo = createMojo();
+        // Use the mojo from the parent class which is already configured
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "schemaFile", schemaFile);
         setField(mojo, "schemaVersion", "V202012");
@@ -80,7 +80,7 @@ public class ValidateMojoTest extends AbstractMojoTest<ValidateMojo> {
         File testSourceDir = testResourceDir.toFile();
         File schemaFile = new File(testSourceDir, "schema.json");
 
-        ValidateMojo mojo = createMojo();
+        // Use the mojo from the parent class which is already configured
         setField(mojo, "sourceDirectory", testSourceDir);
         setField(mojo, "schemaFile", schemaFile);
         setField(mojo, "schemaVersion", "V202012");

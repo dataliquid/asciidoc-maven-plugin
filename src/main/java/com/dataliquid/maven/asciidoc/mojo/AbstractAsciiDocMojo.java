@@ -12,6 +12,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.SafeMode;
 
 import com.dataliquid.maven.asciidoc.parser.FrontMatterParser;
 import com.dataliquid.maven.asciidoc.util.FilePatternMatcher;
@@ -36,6 +37,9 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
     @Parameter(property = "asciidoc.excludes")
     protected String[] excludes;
+
+    @Parameter(property = "asciidoc.safeMode", defaultValue = "SAFE")
+    protected String safeMode;
 
     private Asciidoctor asciidoctor;
     private FrontMatterParser frontMatterParser;
@@ -122,5 +126,18 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
             frontMatterParser = new FrontMatterParser(getLog());
         }
         return frontMatterParser;
+    }
+
+    /**
+     * Get the configured SafeMode. Supports: UNSAFE, SAFE, SERVER, SECURE Default
+     * is SAFE for security reasons.
+     */
+    protected SafeMode getSafeMode() throws MojoExecutionException {
+        try {
+            return SafeMode.valueOf(safeMode.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MojoExecutionException(
+                    "Invalid safeMode value: " + safeMode + ". Valid values are: UNSAFE, SAFE, SERVER, SECURE", e);
+        }
     }
 }
