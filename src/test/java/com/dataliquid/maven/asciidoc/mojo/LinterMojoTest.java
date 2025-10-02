@@ -1,6 +1,7 @@
 package com.dataliquid.maven.asciidoc.mojo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
@@ -271,5 +272,137 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
 
         assertEquals(expectedOutput, actualNormalized,
                 "Placeholder enforcement output must match EXACTLY - every character, every space, every line!");
+    }
+
+    @Test
+    void shouldLintYamlFilesWithAsciiDocContent() throws Exception {
+        // Given
+        File testSourceDir = new File(getClass().getResource("/functional/lint/yaml-lint-test").toURI());
+        File ruleFile = new File(testSourceDir, "linter-rules.yaml");
+
+        setField(mojo, "sourceDirectory", testSourceDir);
+        setField(mojo, "ruleFile", ruleFile);
+        setField(mojo, "includes", new String[] { "**/document.yaml" });
+        setField(mojo, "consoleOutputFormat", "enhanced");
+        setField(mojo, "useColors", false);
+        setField(mojo, "failOnError", true);
+
+        com.dataliquid.maven.asciidoc.stub.LogCapture logCapture = new com.dataliquid.maven.asciidoc.stub.LogCapture();
+        mojo.setLog(logCapture);
+
+        // When
+        mojo.execute();
+
+        // Then
+        String output = logCapture.getCapturedOutput();
+
+        // Verify basic processing
+        assertTrue(output.contains("Found 1 AsciiDoc files to lint"), "Should find 1 YAML file");
+        assertTrue(output.contains("Loading linter configuration from:"), "Should load config");
+        assertTrue(output.contains("Linting YAML file:"), "Should process YAML file");
+        assertTrue(output.contains("document.yaml"), "Should mention file name");
+        assertTrue(output.contains("Found 3 AsciiDoc content blocks"), "Should find 3 blocks");
+
+        // Verify that doctype attribute is found in at least one block (it's optional
+        // per our rules)
+        // Since it's info level and not required, we shouldn't see error messages
+        assertFalse(output.contains("[ERROR]"), "Should have no errors");
+        assertFalse(output.contains("Missing required attribute"), "Should have no missing attributes");
+
+        // The successful linting doesn't show specific paths in info level
+        // Only errors would show the detailed YAML paths, so we just verify no errors
+        // Debug output would show the paths but isn't captured by LogCapture at INFO
+        // level
+    }
+
+    @Test
+    void shouldReportYamlPathInErrorMessages() throws Exception {
+        // Given
+        File testSourceDir = new File(getClass().getResource("/functional/lint/yaml-with-violations").toURI());
+        File ruleFile = new File(testSourceDir, "linter-rules.yaml");
+
+        setField(mojo, "sourceDirectory", testSourceDir);
+        setField(mojo, "ruleFile", ruleFile);
+        setField(mojo, "includes", new String[] { "**/content.yaml" });
+        setField(mojo, "failOnError", false);
+        setField(mojo, "consoleOutputFormat", "enhanced");
+        setField(mojo, "useColors", false);
+
+        com.dataliquid.maven.asciidoc.stub.LogCapture logCapture = new com.dataliquid.maven.asciidoc.stub.LogCapture();
+        mojo.setLog(logCapture);
+
+        // When
+        mojo.execute();
+
+        // Then
+        String output = logCapture.getCapturedOutput();
+
+        // Verify YAML file processing
+        assertTrue(output.contains("Linting YAML file:"), "Should log YAML file linting");
+        assertTrue(output.contains("content.yaml"), "Should mention the YAML file name");
+        assertTrue(output.contains("Found 3 AsciiDoc content blocks"), "Should find 3 blocks");
+
+        // Verify YAML paths are included for each block with errors
+        assertTrue(output.contains("YAML path: documentation.intro"), "Should show YAML path for first block");
+        assertTrue(output.contains("YAML path: api.endpoints[0].description"),
+                "Should show YAML path for second block");
+
+        // Verify actual linting errors are reported
+        assertTrue(
+                output.contains("Missing required attribute 'author'")
+                        || output.contains("required property 'author' not found"),
+                "Should report missing author attribute");
+        assertTrue(
+                output.contains("Missing required attribute 'keywords'")
+                        || output.contains("required property 'keywords' not found"),
+                "Should report missing keywords attribute");
+
+        // The third block (api.endpoints[1].description) should not produce errors
+        // since it has all required attributes (author and keywords)
+        int errorCount = output.split("Missing required attribute").length - 1;
+        assertTrue(errorCount >= 2, "Should have at least 2 errors for missing attributes");
+    }
+
+    @Test
+    void shouldHandleMixedAdocAndYamlFiles() throws Exception {
+        // Given - create a test directory with both .adoc and .yaml files
+        File testSourceDir = new File(getClass().getResource("/functional/lint/simple-lint-test").toURI());
+        File ruleFile = new File(testSourceDir, "linter-rules.yaml");
+
+        setField(mojo, "sourceDirectory", testSourceDir);
+        setField(mojo, "ruleFile", ruleFile);
+        setField(mojo, "includes", new String[] { "**/*.adoc", "**/*.yaml", "**/*.yml" });
+
+        Log mockLog = Mockito.mock(Log.class);
+        mojo.setLog(mockLog);
+
+        // When
+        mojo.execute();
+
+        // Then
+        verify(mockLog).info(contains("Linting:"));
+        verify(mockLog).info(contains(".adoc"));
+        // If there are YAML files, they would be processed too
+    }
+
+    @Test
+    void shouldSkipYamlFilesWithoutAsciiDocTags() throws Exception {
+        // Given - using the linter-rules.yaml which doesn't have !asciidoc tags
+        File testSourceDir = new File(getClass().getResource("/functional/lint/yaml-lint-test").toURI());
+        File ruleFile = new File(testSourceDir, "linter-rules.yaml");
+
+        setField(mojo, "sourceDirectory", testSourceDir);
+        setField(mojo, "ruleFile", ruleFile);
+        setField(mojo, "includes", new String[] { "linter-rules.yaml" });
+
+        Log mockLog = Mockito.mock(Log.class);
+        mojo.setLog(mockLog);
+
+        // When
+        mojo.execute();
+
+        // Then
+        verify(mockLog).info(contains("Linting YAML file:"));
+        verify(mockLog).debug(contains("No !asciidoc tags found in:"));
     }
 }

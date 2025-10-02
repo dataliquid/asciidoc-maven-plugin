@@ -1,0 +1,29 @@
+metadata:
+  version: "1.0"
+
+documentation:
+  intro: !asciidoc |
+    = Introduction Document
+
+    This document is missing required attributes like author and keywords.
+
+    == Section One
+
+    Some content here.
+
+api:
+  endpoints:
+    - path: /users
+      description: !asciidoc |
+        = User API Documentation
+        :description: User management endpoints
+
+        Missing author and keywords attributes.
+
+    - path: /posts
+      description: !asciidoc |
+        = Posts API
+        :author: Test Author
+        :keywords: api, posts
+
+        This one has all required attributes.
