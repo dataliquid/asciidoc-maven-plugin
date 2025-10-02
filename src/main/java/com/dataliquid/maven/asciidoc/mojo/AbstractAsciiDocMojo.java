@@ -12,13 +12,14 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.SafeMode;
 
 import com.dataliquid.maven.asciidoc.parser.FrontMatterParser;
 import com.dataliquid.maven.asciidoc.util.FilePatternMatcher;
 
 /**
- * Abstract base class for all AsciiDoc-related Mojos.
- * Provides common functionality following DRY principles.
+ * Abstract base class for all AsciiDoc-related Mojos. Provides common
+ * functionality following DRY principles.
  */
 public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
@@ -33,9 +34,12 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
     @Parameter(property = "asciidoc.includes", defaultValue = "**/*.adoc")
     protected String[] includes;
-    
+
     @Parameter(property = "asciidoc.excludes")
     protected String[] excludes;
+
+    @Parameter(property = "asciidoc.safeMode", defaultValue = "SAFE")
+    protected String safeMode;
 
     private Asciidoctor asciidoctor;
     private FrontMatterParser frontMatterParser;
@@ -65,7 +69,7 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
         try {
             List<Path> files = findAsciiDocFiles();
             getLog().info("Found " + files.size() + " AsciiDoc files");
-            
+
             if (!files.isEmpty()) {
                 processFiles(files);
             }
@@ -101,9 +105,7 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
      */
     protected List<Path> findAsciiDocFiles() throws IOException {
         FilePatternMatcher matcher = new FilePatternMatcher(sourceDirectory, includes, excludes);
-        return matcher.getMatchedFiles().stream()
-                .map(File::toPath)
-                .collect(Collectors.toList());
+        return matcher.getMatchedFiles().stream().map(File::toPath).collect(Collectors.toList());
     }
 
     /**
@@ -124,5 +126,18 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
             frontMatterParser = new FrontMatterParser(getLog());
         }
         return frontMatterParser;
+    }
+
+    /**
+     * Get the configured SafeMode. Supports: UNSAFE, SAFE, SERVER, SECURE Default
+     * is SAFE for security reasons.
+     */
+    protected SafeMode getSafeMode() throws MojoExecutionException {
+        try {
+            return SafeMode.valueOf(safeMode.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MojoExecutionException(
+                    "Invalid safeMode value: " + safeMode + ". Valid values are: UNSAFE, SAFE, SERVER, SECURE", e);
+        }
     }
 }
