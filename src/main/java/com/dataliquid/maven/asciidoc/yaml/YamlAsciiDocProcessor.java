@@ -9,6 +9,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +26,91 @@ public class YamlAsciiDocProcessor {
         this.asciidoctor = asciidoctor;
         this.asciidoctorOptions = asciidoctorOptions;
         this.log = log;
+    }
+
+    /**
+     * Container for extracted AsciiDoc content with its YAML path context
+     */
+    public static class ExtractedContent {
+        private final String content;
+        private final String yamlPath;
+
+        public ExtractedContent(String content, String yamlPath) {
+            this.content = content;
+            this.yamlPath = yamlPath;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public String getYamlPath() {
+            return yamlPath;
+        }
+    }
+
+    /**
+     * Extract AsciiDoc content from YAML file without rendering Used for linting
+     * purposes
+     *
+     * @param  yamlFile the YAML file to process
+     *
+     * @return          list of extracted AsciiDoc content with their YAML paths
+     */
+    public List<ExtractedContent> extractAsciiDocContent(Path yamlFile) throws IOException {
+        String content = Files.readString(yamlFile);
+
+        // Parse YAML with custom constructor
+        AsciiDocTag constructor = new AsciiDocTag();
+        Yaml yaml = new Yaml(constructor);
+        Object data = yaml.load(content);
+
+        // Traverse and extract AsciiDoc content with paths
+        List<ExtractedContent> extracted = new ArrayList<>();
+        traverseAndExtract(data, "", extracted);
+        return extracted;
+    }
+
+    /**
+     * Recursively traverse the YAML structure and extract AsciiDoc content with
+     * paths
+     */
+    @SuppressWarnings("unchecked")
+    private void traverseAndExtract(Object node, String currentPath, List<ExtractedContent> results) {
+        if (node instanceof AsciiDocTag.AsciiDocContent) {
+            AsciiDocTag.AsciiDocContent asciiDocContent = (AsciiDocTag.AsciiDocContent) node;
+            results.add(new ExtractedContent(asciiDocContent.getContent(), currentPath));
+            log.debug("Extracted AsciiDoc content at path: " + currentPath);
+        } else if (node instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) node;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                String newPath = currentPath.isEmpty() ? key : currentPath + "." + key;
+
+                if (value instanceof AsciiDocTag.AsciiDocContent) {
+                    AsciiDocTag.AsciiDocContent asciiDocContent = (AsciiDocTag.AsciiDocContent) value;
+                    results.add(new ExtractedContent(asciiDocContent.getContent(), newPath));
+                    log.debug("Extracted AsciiDoc content at path: " + newPath);
+                } else {
+                    traverseAndExtract(value, newPath, results);
+                }
+            }
+        } else if (node instanceof List) {
+            List<Object> list = (List<Object>) node;
+            for (int i = 0; i < list.size(); i++) {
+                Object item = list.get(i);
+                String newPath = currentPath + "[" + i + "]";
+
+                if (item instanceof AsciiDocTag.AsciiDocContent) {
+                    AsciiDocTag.AsciiDocContent asciiDocContent = (AsciiDocTag.AsciiDocContent) item;
+                    results.add(new ExtractedContent(asciiDocContent.getContent(), newPath));
+                    log.debug("Extracted AsciiDoc content at path: " + newPath);
+                } else {
+                    traverseAndExtract(item, newPath, results);
+                }
+            }
+        }
     }
 
     /**
