@@ -23,6 +23,10 @@ import com.dataliquid.asciidoc.linter.config.output.SummaryConfig;
 import com.dataliquid.asciidoc.linter.config.output.HighlightStyle;
 import com.dataliquid.maven.asciidoc.report.MavenReportFormatter;
 import com.dataliquid.maven.asciidoc.report.MavenLogWriter;
+import com.dataliquid.maven.asciidoc.yaml.YamlAsciiDocProcessor;
+import org.asciidoctor.Asciidoctor;
+import org.asciidoctor.Attributes;
+import org.asciidoctor.Options;
 
 /**
  * Goal to lint AsciiDoc files using asciidoc-linter.
@@ -85,12 +89,20 @@ public class LinterMojo extends AbstractAsciiDocMojo {
 
             // Lint each file
             for (Path file : adocFiles) {
-                getLog().info("Linting: " + file);
-                ValidationResult result = linter.validateFile(file, linterConfiguration);
+                String fileName = file.getFileName().toString().toLowerCase();
 
-                // Process results with enhanced formatter
-                if (!result.getMessages().isEmpty()) {
-                    formatter.format(result);
+                if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
+                    // Process YAML files with embedded AsciiDoc
+                    lintYamlFile(file, linter, linterConfiguration, formatter);
+                } else {
+                    // Process regular AsciiDoc files
+                    getLog().info("Linting: " + file);
+                    ValidationResult result = linter.validateFile(file, linterConfiguration);
+
+                    // Process results with enhanced formatter
+                    if (!result.getMessages().isEmpty()) {
+                        formatter.format(result);
+                    }
                 }
             }
 
@@ -133,5 +145,45 @@ public class LinterMojo extends AbstractAsciiDocMojo {
                         .build())
                 .summary(summaryConfig)
                 .build();
+    }
+
+    /**
+     * Lint a YAML file containing !asciidoc tags
+     */
+    private void lintYamlFile(Path yamlFile, Linter linter, LinterConfiguration linterConfiguration,
+            MavenReportFormatter formatter) throws IOException {
+        getLog().info("Linting YAML file: " + yamlFile);
+
+        // Create YamlAsciiDocProcessor instance for extraction only (no rendering)
+        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(getLog());
+
+        // Extract AsciiDoc content from YAML
+        List<YamlAsciiDocProcessor.ExtractedContent> extractedContents = yamlProcessor.extractAsciiDocContent(yamlFile);
+
+        if (extractedContents.isEmpty()) {
+            getLog().debug("No !asciidoc tags found in: " + yamlFile);
+            return;
+        }
+
+        getLog().info("Found " + extractedContents.size() + " AsciiDoc content blocks in YAML file");
+
+        // Lint each extracted content
+        for (YamlAsciiDocProcessor.ExtractedContent extracted : extractedContents) {
+            getLog().debug("Linting YAML path: " + extracted.getYamlPath());
+
+            // Validate the content string
+            ValidationResult result = linter.validateContent(extracted.getContent(), linterConfiguration);
+
+            // If there are validation messages, log them with YAML context
+            if (!result.getMessages().isEmpty()) {
+                // Log the YAML path context for this content block
+                getLog().info("");
+                getLog().info("YAML file: " + yamlFile);
+                getLog().info("YAML path: " + extracted.getYamlPath());
+
+                // Format and display the validation results
+                formatter.format(result);
+            }
+        }
     }
 }

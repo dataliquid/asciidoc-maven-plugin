@@ -1,0 +1,9 @@
+document:
+  metadata:
+    attributes:
+      - name: author
+        required: true
+        severity: error
+      - name: keywords
+        required: true
+        severity: error
