@@ -154,9 +154,8 @@ public class LinterMojo extends AbstractAsciiDocMojo {
             MavenReportFormatter formatter) throws IOException {
         getLog().info("Linting YAML file: " + yamlFile);
 
-        // Create YamlAsciiDocProcessor instance (without Asciidoctor for extraction
-        // only)
-        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(null, null, getLog());
+        // Create YamlAsciiDocProcessor instance for extraction only (no rendering)
+        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(getLog());
 
         // Extract AsciiDoc content from YAML
         List<YamlAsciiDocProcessor.ExtractedContent> extractedContents = yamlProcessor.extractAsciiDocContent(yamlFile);

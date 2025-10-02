@@ -26,8 +26,8 @@ class YamlAsciiDocProcessorTest {
     @BeforeEach
     void setUp() {
         mockLog = mock(Log.class);
-        // For extraction, we don't need Asciidoctor, so we can pass null
-        processor = new YamlAsciiDocProcessor(null, null, mockLog);
+        // For extraction-only operations, use the simplified constructor
+        processor = new YamlAsciiDocProcessor(mockLog);
     }
 
     @Test

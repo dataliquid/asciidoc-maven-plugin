@@ -22,9 +22,22 @@ public class YamlAsciiDocProcessor {
     private final Log log;
     private final Options asciidoctorOptions;
 
+    /**
+     * Constructor for full YAML processing with rendering support
+     */
     public YamlAsciiDocProcessor(Asciidoctor asciidoctor, Options asciidoctorOptions, Log log) {
         this.asciidoctor = asciidoctor;
         this.asciidoctorOptions = asciidoctorOptions;
+        this.log = log;
+    }
+
+    /**
+     * Constructor for extraction-only operations (e.g., linting) Does not require
+     * Asciidoctor or Options as no rendering is performed
+     */
+    public YamlAsciiDocProcessor(Log log) {
+        this.asciidoctor = null;
+        this.asciidoctorOptions = null;
         this.log = log;
     }
 
