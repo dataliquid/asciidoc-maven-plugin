@@ -746,4 +746,27 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
             }
         }
     }
+
+    @Test
+    void shouldProcessYamlFileWithAsciiDocTags() throws Exception {
+        // Given
+        File testSourceDir = new File(getClass().getResource("/functional/render/yaml-asciidoc-test").toURI());
+        setField(mojo, "sourceDirectory", testSourceDir);
+
+        // Include both .adoc and .yaml files
+        String[] includes = new String[] { "**/*.adoc", "**/*.yaml", "**/*.yml" };
+        setField(mojo, "includes", includes);
+
+        String expectedOutput = loadTestResource("/functional/render/yaml-asciidoc-test/expected.yaml");
+
+        // When
+        mojo.execute();
+
+        // Then
+        File generatedFile = new File(outputDir, "input.yaml");
+        assertTrue(generatedFile.exists(), "Output file should be generated for input.yaml");
+
+        String actualOutput = loadFile(generatedFile);
+        assertEquals(expectedOutput, actualOutput, "Generated output should match expected YAML");
+    }
 }

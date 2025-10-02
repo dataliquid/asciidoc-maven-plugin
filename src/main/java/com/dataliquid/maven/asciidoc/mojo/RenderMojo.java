@@ -22,6 +22,7 @@ import org.asciidoctor.ast.Document;
 import com.dataliquid.maven.asciidoc.util.IncrementalBuildManager;
 import com.dataliquid.maven.asciidoc.template.DocumentContext;
 import com.dataliquid.maven.asciidoc.template.StringTemplateProcessor;
+import com.dataliquid.maven.asciidoc.yaml.YamlAsciiDocProcessor;
 
 @Mojo(name = "render")
 public class RenderMojo extends AbstractAsciiDocMojo {
@@ -136,36 +137,58 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         }
     }
 
-    private boolean processFile(Path adocFile) {
+    private boolean processFile(Path file) {
         try {
-            getLog().info("Processing: " + adocFile);
+            getLog().info("Processing: " + file);
 
-            String content = Files.readString(adocFile);
+            String fileName = file.getFileName().toString().toLowerCase();
+            String processedContent;
 
-            // Convert AsciiDoc to HTML
-            String generatedHtml = convertAsciiDocToHtml(content, adocFile);
-            if (generatedHtml == null) {
+            // Check if this is a YAML file
+            if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
+                processedContent = processYamlFile(file);
+            } else {
+                processedContent = processAsciiDocFile(file);
+            }
+
+            if (processedContent == null) {
                 return false;
             }
 
-            // Collect metadata for template processing
-            Map<String, Object> metadata = collectAllMetadata(adocFile);
-
-            // Process through template
-            String finalOutput = processWithTemplate(generatedHtml, metadata);
-
-            // Write output file
-            writeOutputFile(adocFile, finalOutput);
-
+            // Write output file for both YAML and AsciiDoc
+            writeOutputFile(file, processedContent);
             return true;
 
         } catch (Exception e) {
-            getLog().error("Error processing file: " + adocFile, e);
+            getLog().error("Error processing file: " + file, e);
             return false;
         }
     }
 
-    private String convertAsciiDocToHtml(String content, Path adocFile) throws IOException, MojoExecutionException {
+    private String processYamlFile(Path yamlFile) throws IOException, MojoExecutionException {
+        getLog().info("Processing YAML file with AsciiDoc content: " + yamlFile);
+        Options options = createAsciidoctorOptions();
+        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(getAsciidoctor(), options, getLog());
+        return yamlProcessor.processYamlFile(yamlFile);
+    }
+
+    private String processAsciiDocFile(Path adocFile) throws IOException, MojoExecutionException {
+        String content = Files.readString(adocFile);
+
+        // Convert AsciiDoc to HTML
+        String generatedHtml = convertAsciiDocToHtml(content, adocFile);
+        if (generatedHtml == null) {
+            return null;
+        }
+
+        // Collect metadata for template processing
+        Map<String, Object> metadata = collectAllMetadata(adocFile);
+
+        // Process through template
+        return processWithTemplate(generatedHtml, metadata);
+    }
+
+    private Options createAsciidoctorOptions() throws MojoExecutionException {
         Map<String, Object> allAttributes = new HashMap<>(attributes);
 
         if (enableDiagrams) {
@@ -191,7 +214,11 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             optionsBuilder.templateDirs(templateDir);
         }
 
-        Options options = optionsBuilder.build();
+        return optionsBuilder.build();
+    }
+
+    private String convertAsciiDocToHtml(String content, Path adocFile) throws IOException, MojoExecutionException {
+        Options options = createAsciidoctorOptions();
 
         // Convert to HTML using options with custom attributes
         String generatedHtml = getAsciidoctor().convert(content, options);
@@ -241,22 +268,13 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         return processor.process(templateFile, context);
     }
 
-    private void writeOutputFile(Path adocFile, String content) throws IOException {
-        Path absoluteRelativePath = sourceDirectory.toPath().toAbsolutePath().relativize(adocFile.toAbsolutePath());
+    private void writeOutputFile(Path inputFile, String content) throws IOException {
+        Path absoluteRelativePath = sourceDirectory.toPath().toAbsolutePath().relativize(inputFile.toAbsolutePath());
         getLog().debug("Source dir: " + sourceDirectory.toPath().toAbsolutePath());
-        getLog().debug("Adoc file: " + adocFile.toAbsolutePath());
+        getLog().debug("Input file: " + inputFile.toAbsolutePath());
         getLog().debug("Relative path: " + absoluteRelativePath);
 
-        String outputFileName;
-        String extension = "." + outputFormat;
-
-        if (absoluteRelativePath.toString().isEmpty()) {
-            // File is directly in source directory
-            outputFileName = adocFile.getFileName().toString().replaceAll("\\.adoc$", extension);
-        } else {
-            outputFileName = absoluteRelativePath.toString().replaceAll("\\.adoc$", extension);
-        }
-
+        String outputFileName = determineOutputFileName(inputFile, absoluteRelativePath);
         getLog().debug("Output filename: " + outputFileName);
 
         Path outputPath = outputDirectory.toPath().resolve(outputFileName);
@@ -264,6 +282,24 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         Files.writeString(outputPath, content);
 
         getLog().info("Generated: " + outputPath);
+    }
+
+    private String determineOutputFileName(Path inputFile, Path relativePath) {
+        String fileName = inputFile.getFileName().toString().toLowerCase();
+
+        // For YAML files, keep the original extension
+        if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
+            return relativePath.toString();
+        }
+
+        // For AsciiDoc files, replace extension with outputFormat
+        String extension = "." + outputFormat;
+        if (relativePath.toString().isEmpty()) {
+            // File is directly in source directory
+            return inputFile.getFileName().toString().replaceAll("\\.adoc$", extension);
+        } else {
+            return relativePath.toString().replaceAll("\\.adoc$", extension);
+        }
     }
 
     private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException, MojoExecutionException {
