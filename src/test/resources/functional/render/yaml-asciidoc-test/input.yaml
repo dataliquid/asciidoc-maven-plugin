@@ -1,0 +1,6 @@
+document:
+  title: "Test"
+  content: !asciidoc |
+    == Hello World
+
+    This is *bold* text.
