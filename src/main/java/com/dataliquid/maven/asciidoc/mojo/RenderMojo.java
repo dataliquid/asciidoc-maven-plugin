@@ -60,6 +60,9 @@ public class RenderMojo extends AbstractAsciiDocMojo {
     @Parameter(property = "asciidoc.outputFormat", defaultValue = "html")
     private String outputFormat;
 
+    @Parameter(property = "asciidoc.yamlTagMappings")
+    private Map<String, String> yamlTagMappings;
+
     @Override
     protected String getMojoName() {
         return "AsciiDoc processing";
@@ -168,7 +171,8 @@ public class RenderMojo extends AbstractAsciiDocMojo {
     private String processYamlFile(Path yamlFile) throws IOException, MojoExecutionException {
         getLog().info("Processing YAML file with AsciiDoc content: " + yamlFile);
         Options options = createAsciidoctorOptions();
-        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(getAsciidoctor(), options, getLog());
+        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(getAsciidoctor(), options, getLog(),
+                yamlTagMappings);
         return yamlProcessor.processYamlFile(yamlFile);
     }
 
