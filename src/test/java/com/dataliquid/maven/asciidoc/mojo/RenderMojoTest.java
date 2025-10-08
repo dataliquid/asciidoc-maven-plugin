@@ -769,4 +769,26 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
         String actualOutput = loadFile(generatedFile);
         assertEquals(expectedOutput, actualOutput, "Generated output should match expected YAML");
     }
+
+    @Test
+    void shouldProcessYamlFileWithUnknownTags() throws Exception {
+        // given
+        File testSourceDir = new File(getClass().getResource("/functional/render/yaml-unknown-tags-test").toURI());
+        setField(mojo, "sourceDirectory", testSourceDir);
+
+        String[] includes = new String[] { "**/*.yaml" };
+        setField(mojo, "includes", includes);
+
+        String expectedOutput = loadTestResource("/functional/render/yaml-unknown-tags-test/expected.yaml");
+
+        // when
+        mojo.execute();
+
+        // then
+        File generatedFile = new File(outputDir, "input.yaml");
+        assertTrue(generatedFile.exists(), "Output file should be generated");
+
+        String actualOutput = loadFile(generatedFile);
+        assertEquals(expectedOutput, actualOutput, "Generated output should preserve unknown tags");
+    }
 }

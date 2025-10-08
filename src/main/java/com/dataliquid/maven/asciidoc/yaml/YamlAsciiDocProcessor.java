@@ -210,7 +210,8 @@ public class YamlAsciiDocProcessor {
         options.setIndent(2);
         options.setWidth(Integer.MAX_VALUE); // Prevent line wrapping
 
-        Yaml yaml = new Yaml(options);
+        // Use custom representer to preserve unknown tags in output
+        Yaml yaml = new Yaml(new AsciiDocTag.TagPreservingRepresenter(options), options);
         return yaml.dump(data);
     }
 }
