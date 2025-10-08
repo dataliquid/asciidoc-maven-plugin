@@ -1,0 +1,4 @@
+document:
+  title: "Tag Mapping Test"
+  content: !asciidoc |
+    This is a test with tag mapping.

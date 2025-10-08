@@ -21,14 +21,24 @@ public class YamlAsciiDocProcessor {
     private final Asciidoctor asciidoctor;
     private final Log log;
     private final Options asciidoctorOptions;
+    private final Map<String, String> yamlTagMappings;
 
     /**
      * Constructor for full YAML processing with rendering support
      */
     public YamlAsciiDocProcessor(Asciidoctor asciidoctor, Options asciidoctorOptions, Log log) {
+        this(asciidoctor, asciidoctorOptions, log, null);
+    }
+
+    /**
+     * Constructor for full YAML processing with rendering support and tag mapping
+     */
+    public YamlAsciiDocProcessor(Asciidoctor asciidoctor, Options asciidoctorOptions, Log log,
+            Map<String, String> yamlTagMappings) {
         this.asciidoctor = asciidoctor;
         this.asciidoctorOptions = asciidoctorOptions;
         this.log = log;
+        this.yamlTagMappings = yamlTagMappings;
     }
 
     /**
@@ -39,6 +49,7 @@ public class YamlAsciiDocProcessor {
         this.asciidoctor = null;
         this.asciidoctorOptions = null;
         this.log = log;
+        this.yamlTagMappings = null;
     }
 
     /**
@@ -74,7 +85,7 @@ public class YamlAsciiDocProcessor {
         String content = Files.readString(yamlFile);
 
         // Parse YAML with custom constructor
-        AsciiDocTag constructor = new AsciiDocTag();
+        AsciiDocTag constructor = new AsciiDocTag(yamlTagMappings);
         Yaml yaml = new Yaml(constructor);
         Object data = yaml.load(content);
 
@@ -133,7 +144,7 @@ public class YamlAsciiDocProcessor {
         String content = Files.readString(yamlFile);
 
         // Parse YAML with custom constructor
-        AsciiDocTag constructor = new AsciiDocTag();
+        AsciiDocTag constructor = new AsciiDocTag(yamlTagMappings);
         Yaml yaml = new Yaml(constructor);
         Object data = yaml.load(content);
 
@@ -162,8 +173,6 @@ public class YamlAsciiDocProcessor {
                     AsciiDocTag.AsciiDocContent asciiDocContent = (AsciiDocTag.AsciiDocContent) value;
                     String rendered = renderAsciiDoc(asciiDocContent.getContent());
                     asciiDocContent.setRendered(rendered);
-                    // Replace the AsciiDocContent with rendered HTML
-                    entry.setValue(rendered);
                 } else {
                     traverseAndRender(value);
                 }
@@ -176,8 +185,6 @@ public class YamlAsciiDocProcessor {
                     AsciiDocTag.AsciiDocContent asciiDocContent = (AsciiDocTag.AsciiDocContent) item;
                     String rendered = renderAsciiDoc(asciiDocContent.getContent());
                     asciiDocContent.setRendered(rendered);
-                    // Replace the AsciiDocContent with rendered HTML
-                    list.set(i, rendered);
                 } else {
                     traverseAndRender(item);
                 }
@@ -211,7 +218,7 @@ public class YamlAsciiDocProcessor {
         options.setWidth(Integer.MAX_VALUE); // Prevent line wrapping
 
         // Use custom representer to preserve unknown tags in output
-        Yaml yaml = new Yaml(new AsciiDocTag.TagPreservingRepresenter(options), options);
+        Yaml yaml = new Yaml(new AsciiDocTag.TagPreservingRepresenter(options, yamlTagMappings), options);
         return yaml.dump(data);
     }
 }

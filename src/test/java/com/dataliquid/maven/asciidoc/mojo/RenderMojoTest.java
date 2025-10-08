@@ -791,4 +791,30 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
         String actualOutput = loadFile(generatedFile);
         assertEquals(expectedOutput, actualOutput, "Generated output should preserve unknown tags");
     }
+
+    @Test
+    void shouldProcessYamlFileWithTagMapping() throws Exception {
+        // given
+        File testSourceDir = new File(getClass().getResource("/functional/render/yaml-tag-mapping-test").toURI());
+        setField(mojo, "sourceDirectory", testSourceDir);
+
+        Map<String, String> mappings = new HashMap<>();
+        mappings.put("asciidoc", "html");
+        setField(mojo, "yamlTagMappings", mappings);
+
+        String[] includes = new String[] { "**/*.yaml" };
+        setField(mojo, "includes", includes);
+
+        String expectedOutput = loadTestResource("/functional/render/yaml-tag-mapping-test/expected.yaml");
+
+        // when
+        mojo.execute();
+
+        // then
+        File generatedFile = new File(outputDir, "input.yaml");
+        assertTrue(generatedFile.exists(), "Output file should be generated");
+
+        String actualOutput = loadFile(generatedFile);
+        assertEquals(expectedOutput, actualOutput, "Generated output should map tags");
+    }
 }

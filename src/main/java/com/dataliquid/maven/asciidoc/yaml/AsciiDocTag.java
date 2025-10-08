@@ -10,15 +10,24 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Represent;
 import org.yaml.snakeyaml.representer.Representer;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Custom YAML constructor for handling !asciidoc tags
  */
 public class AsciiDocTag extends Constructor {
 
     public static final Tag ASCIIDOC_TAG = new Tag("!asciidoc");
+    private final Map<String, String> tagMappings;
 
     public AsciiDocTag() {
+        this(null);
+    }
+
+    public AsciiDocTag(Map<String, String> tagMappings) {
         super(new LoaderOptions());
+        this.tagMappings = tagMappings != null ? tagMappings : Collections.emptyMap();
         this.yamlConstructors.put(ASCIIDOC_TAG, new ConstructAsciiDoc());
         // Always register fallback constructor for unknown tags
         this.yamlMultiConstructors.put("", new ConstructUnknownTag());
@@ -106,17 +115,50 @@ public class AsciiDocTag extends Constructor {
      * Custom Representer to output TaggedValue with original tags
      */
     public static class TagPreservingRepresenter extends Representer {
+        private final Map<String, String> tagMappings;
+
         public TagPreservingRepresenter(DumperOptions options) {
+            this(options, null);
+        }
+
+        public TagPreservingRepresenter(DumperOptions options, Map<String, String> tagMappings) {
             super(options);
+            this.tagMappings = tagMappings != null ? tagMappings : Collections.emptyMap();
             this.representers.put(TaggedValue.class, new RepresentTaggedValue());
+            this.representers.put(AsciiDocContent.class, new RepresentAsciiDocContent());
         }
 
         private class RepresentTaggedValue implements Represent {
             @Override
             public Node representData(Object data) {
                 TaggedValue tagged = (TaggedValue) data;
-                Tag tag = new Tag(tagged.getTag());
+                String inputTag = tagged.getTag().substring(1); // Remove "!"
+                String outputTag = tagMappings.getOrDefault(inputTag, inputTag);
+                Tag tag = new Tag("!" + outputTag);
                 return representScalar(tag, tagged.getValue());
+            }
+        }
+
+        private class RepresentAsciiDocContent implements Represent {
+            @Override
+            public Node representData(Object data) {
+                AsciiDocContent content = (AsciiDocContent) data;
+                String rendered = content.getRendered() != null ? content.getRendered() : content.getContent();
+
+                // Use literal block style for multiline strings
+                DumperOptions.ScalarStyle style = rendered.contains("\n") ? DumperOptions.ScalarStyle.LITERAL
+                        : DumperOptions.ScalarStyle.PLAIN;
+
+                // Only output tag if mapping is configured
+                if (tagMappings.isEmpty() || !tagMappings.containsKey("asciidoc")) {
+                    // No mapping - return plain string (backward compatible)
+                    return representScalar(Tag.STR, rendered, style);
+                } else {
+                    // With mapping - return with mapped tag
+                    String outputTag = tagMappings.get("asciidoc");
+                    Tag tag = new Tag("!" + outputTag);
+                    return representScalar(tag, rendered, style);
+                }
             }
         }
     }
