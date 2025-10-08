@@ -1,0 +1,10 @@
+template: !html:template '<div class="wrapper"><p>Content</p></div>'
+content: |-
+  <div class="sect1">
+  <h2 id="_test_document">Test Document</h2>
+  <div class="sectionbody">
+  <div class="paragraph">
+  <p>This is a test.</p>
+  </div>
+  </div>
+  </div>
