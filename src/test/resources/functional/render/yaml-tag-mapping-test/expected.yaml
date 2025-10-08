@@ -1,0 +1,6 @@
+document:
+  title: Tag Mapping Test
+  content: !html |-
+    <div class="paragraph">
+    <p>This is a test with tag mapping.</p>
+    </div>
