@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Attributes;
 import org.asciidoctor.Options;
 import org.asciidoctor.OptionsBuilder;
@@ -23,6 +25,13 @@ import com.dataliquid.maven.asciidoc.util.IncrementalBuildManager;
 import com.dataliquid.maven.asciidoc.template.DocumentContext;
 import com.dataliquid.maven.asciidoc.template.StringTemplateProcessor;
 import com.dataliquid.maven.asciidoc.yaml.YamlAsciiDocProcessor;
+import com.dataliquid.maven.asciidoc.pool.AsciidoctorPool;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 
 @Mojo(name = "render")
 public class RenderMojo extends AbstractAsciiDocMojo {
@@ -63,6 +72,12 @@ public class RenderMojo extends AbstractAsciiDocMojo {
     @Parameter(property = "asciidoc.yamlTagMappings")
     private Map<String, String> yamlTagMappings;
 
+    @Parameter(property = "asciidoc.parallelThreshold", defaultValue = "10")
+    private int parallelThreshold;
+
+    @Parameter(property = "asciidoc.maxThreads", defaultValue = "4")
+    private int maxThreads;
+
     @Override
     protected String getMojoName() {
         return "AsciiDoc processing";
@@ -100,6 +115,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
             int skippedCount = 0;
 
+            List<Path> filesToProcess = new ArrayList<>();
             for (Path adocFile : adocFiles) {
                 Path relativePath = sourceDirectory.toPath().relativize(adocFile);
                 Path outputPath = outputDirectory
@@ -116,12 +132,21 @@ public class RenderMojo extends AbstractAsciiDocMojo {
                 }
 
                 if (shouldProcess) {
-                    boolean success = processFile(adocFile);
-                    if (success && incrementalManager != null) {
-                        incrementalManager.updateHash(adocFile);
-                    }
+                    filesToProcess.add(adocFile);
                 }
             }
+
+            // Process files - use parallel mode if threshold exceeded
+            long startTime = System.currentTimeMillis();
+            if (filesToProcess.size() > parallelThreshold) {
+                getLog().info("Using parallel processing for " + filesToProcess.size() + " files");
+                processFilesParallel(filesToProcess, incrementalManager);
+            } else {
+                getLog().info("Using sequential processing for " + filesToProcess.size() + " files");
+                processFilesSequential(filesToProcess, incrementalManager);
+            }
+            long duration = System.currentTimeMillis() - startTime;
+            getLog().info("Processed " + filesToProcess.size() + " files in " + duration + " ms");
 
             if (incrementalManager != null) {
                 Map<String, Path> currentFiles = adocFiles
@@ -140,7 +165,81 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         }
     }
 
-    private boolean processFile(Path file) {
+    private void processFilesSequential(List<Path> filesToProcess, IncrementalBuildManager incrementalManager) {
+        Asciidoctor asciidoctor = getAsciidoctor();
+        for (Path adocFile : filesToProcess) {
+            boolean success = processFile(adocFile, asciidoctor);
+            if (success && incrementalManager != null) {
+                incrementalManager.updateHash(adocFile);
+            }
+        }
+    }
+
+    private void processFilesParallel(List<Path> filesToProcess, IncrementalBuildManager incrementalManager)
+            throws MojoExecutionException {
+        int poolSize = Math.max(1, Math.min(Runtime.getRuntime().availableProcessors(), maxThreads));
+
+        Consumer<Asciidoctor> initializer = asciidoctor -> {
+            if (enableDiagrams) {
+                asciidoctor.requireLibrary("asciidoctor-diagram");
+            }
+        };
+
+        try (AsciidoctorPool pool = new AsciidoctorPool(poolSize, initializer)) {
+            ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+            List<Future<Boolean>> futures = new ArrayList<>();
+
+            for (Path file : filesToProcess) {
+                Future<Boolean> future = executor.submit(() -> {
+                    Asciidoctor instance = null;
+                    try {
+                        instance = pool.acquire();
+                        boolean success = processFile(file, instance);
+                        if (success && incrementalManager != null) {
+                            synchronized (incrementalManager) {
+                                incrementalManager.updateHash(file);
+                            }
+                        }
+                        return success;
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Interrupted while acquiring Asciidoctor instance", e);
+                    } finally {
+                        if (instance != null) {
+                            pool.release(instance);
+                        }
+                    }
+                });
+                futures.add(future);
+            }
+
+            // Wait for all tasks to complete
+            for (Future<Boolean> future : futures) {
+                try {
+                    future.get();
+                } catch (Exception e) {
+                    throw new MojoExecutionException("Error during parallel processing", e);
+                }
+            }
+
+            executor.shutdown();
+            if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+                getLog().warn("Parallel processing did not complete within 1 minute, forcing shutdown");
+                List<Runnable> pendingTasks = executor.shutdownNow();
+                if (!pendingTasks.isEmpty()) {
+                    getLog().warn("Cancelled " + pendingTasks.size() + " pending tasks");
+                }
+                throw new MojoExecutionException("Parallel processing timeout exceeded");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new MojoExecutionException("Interrupted during parallel processing", e);
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error during parallel processing", e);
+        }
+    }
+
+    private boolean processFile(Path file, Asciidoctor asciidoctorInstance) {
         try {
             getLog().info("Processing: " + file);
 
@@ -149,9 +248,9 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
             // Check if this is a YAML file
             if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
-                processedContent = processYamlFile(file);
+                processedContent = processYamlFile(file, asciidoctorInstance);
             } else {
-                processedContent = processAsciiDocFile(file);
+                processedContent = processAsciiDocFile(file, asciidoctorInstance);
             }
 
             if (processedContent == null) {
@@ -168,25 +267,27 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         }
     }
 
-    private String processYamlFile(Path yamlFile) throws IOException, MojoExecutionException {
+    private String processYamlFile(Path yamlFile, Asciidoctor asciidoctorInstance)
+            throws IOException, MojoExecutionException {
         getLog().info("Processing YAML file with AsciiDoc content: " + yamlFile);
         Options options = createAsciidoctorOptions();
-        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(getAsciidoctor(), options, getLog(),
+        YamlAsciiDocProcessor yamlProcessor = new YamlAsciiDocProcessor(asciidoctorInstance, options, getLog(),
                 yamlTagMappings);
         return yamlProcessor.processYamlFile(yamlFile);
     }
 
-    private String processAsciiDocFile(Path adocFile) throws IOException, MojoExecutionException {
+    private String processAsciiDocFile(Path adocFile, Asciidoctor asciidoctorInstance)
+            throws IOException, MojoExecutionException {
         String content = Files.readString(adocFile);
 
         // Convert AsciiDoc to HTML
-        String generatedHtml = convertAsciiDocToHtml(content, adocFile);
+        String generatedHtml = convertAsciiDocToHtml(content, adocFile, asciidoctorInstance);
         if (generatedHtml == null) {
             return null;
         }
 
         // Collect metadata for template processing
-        Map<String, Object> metadata = collectAllMetadata(adocFile);
+        Map<String, Object> metadata = collectAllMetadata(adocFile, asciidoctorInstance);
 
         // Process through template
         return processWithTemplate(generatedHtml, metadata);
@@ -221,11 +322,12 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         return optionsBuilder.build();
     }
 
-    private String convertAsciiDocToHtml(String content, Path adocFile) throws IOException, MojoExecutionException {
+    private String convertAsciiDocToHtml(String content, Path adocFile, Asciidoctor asciidoctorInstance)
+            throws IOException, MojoExecutionException {
         Options options = createAsciidoctorOptions();
 
         // Convert to HTML using options with custom attributes
-        String generatedHtml = getAsciidoctor().convert(content, options);
+        String generatedHtml = asciidoctorInstance.convert(content, options);
 
         if (generatedHtml == null || generatedHtml.trim().isEmpty()) {
             getLog().error("Failed to convert " + adocFile + " - AsciidoctorJ returned null or empty content");
@@ -306,7 +408,8 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         }
     }
 
-    private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException, MojoExecutionException {
+    private Map<String, Object> collectAllMetadata(Path adocFile, Asciidoctor asciidoctorInstance)
+            throws IOException, MojoExecutionException {
         Map<String, Object> metadata = new HashMap<>();
 
         String content = Files.readString(adocFile);
@@ -327,7 +430,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
 
         Options options = Options.builder().safe(getSafeMode()).attributes(documentAttributes).build();
 
-        Document document = getAsciidoctor().load(content, options);
+        Document document = asciidoctorInstance.load(content, options);
 
         // Add file metadata
         metadata.put("_file", sourceDirectory.toPath().relativize(adocFile).toString());

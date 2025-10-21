@@ -324,6 +324,7 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
         Asciidoctor mockAsciidoctor = mock(Asciidoctor.class);
         when(mockAsciidoctor.convert(anyString(), any(Options.class)))
                 .thenThrow(new RuntimeException("Processing error"));
+        when(mockAsciidoctor.load(anyString(), any(Options.class))).thenReturn(null);
         setField(mojo, "asciidoctor", mockAsciidoctor);
 
         // Capture log
@@ -384,6 +385,7 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
         when(mockAsciidoctor.convert(contains("This will work"), any(Options.class))).thenReturn(expectedSuccessHtml);
         when(mockAsciidoctor.convert(contains("This will fail"), any(Options.class)))
                 .thenThrow(new RuntimeException("Conversion failed"));
+        when(mockAsciidoctor.load(anyString(), any(Options.class))).thenReturn(null);
         setField(mojo, "asciidoctor", mockAsciidoctor);
 
         // Capture log
@@ -816,5 +818,72 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
 
         String actualOutput = loadFile(generatedFile);
         assertEquals(expectedOutput, actualOutput, "Generated output should map tags");
+    }
+
+    @Test
+    void shouldUseParallelProcessingWhenThresholdExceeded() throws Exception {
+        // Given - create 5 simple test files in a temp directory
+        Path tempSourceDir = Files.createTempDirectory("parallel-test");
+        for (int i = 1; i <= 5; i++) {
+            Files.writeString(tempSourceDir.resolve("file" + i + ".adoc"), "Content for parallel document " + i);
+        }
+
+        setField(mojo, "sourceDirectory", tempSourceDir.toFile());
+        setField(mojo, "parallelThreshold", 3); // Low threshold triggers parallel
+        setField(mojo, "maxThreads", 2);
+
+        LogCapture logCapture = new LogCapture(true);
+        setField(mojo, "log", logCapture);
+
+        // When
+        mojo.execute();
+
+        // Then
+        String logOutput = logCapture.getCapturedOutput();
+        assertTrue(logOutput.contains("Using parallel processing for 5 files"), "Should use parallel processing");
+        assertTrue(logOutput.contains("Processed 5 files in"), "Should complete processing");
+
+        // Verify all files generated with correct content
+        for (int i = 1; i <= 5; i++) {
+            File htmlFile = new File(outputDir, "file" + i + ".html");
+            assertTrue(htmlFile.exists(), "File " + i + " should exist");
+
+            String htmlContent = loadFile(htmlFile);
+            assertTrue(htmlContent.contains("Content for parallel document " + i),
+                    "HTML should contain content text for document " + i);
+        }
+    }
+
+    @Test
+    void shouldUseSequentialProcessingWhenBelowThreshold() throws Exception {
+        // Given - create 2 simple test files in a temp directory
+        Path tempSourceDir = Files.createTempDirectory("sequential-test");
+        Files.writeString(tempSourceDir.resolve("doc1.adoc"), "Sequential content 1");
+        Files.writeString(tempSourceDir.resolve("doc2.adoc"), "Sequential content 2");
+
+        setField(mojo, "sourceDirectory", tempSourceDir.toFile());
+        setField(mojo, "parallelThreshold", 10); // High threshold forces sequential
+
+        LogCapture logCapture = new LogCapture(true);
+        setField(mojo, "log", logCapture);
+
+        // When
+        mojo.execute();
+
+        // Then
+        String logOutput = logCapture.getCapturedOutput();
+        assertTrue(logOutput.contains("Using sequential processing for 2 files"), "Should use sequential processing");
+        assertTrue(logOutput.contains("Processed 2 files in"), "Should complete processing");
+
+        // Verify files with correct content
+        File html1 = new File(outputDir, "doc1.html");
+        assertTrue(html1.exists());
+        String content1 = loadFile(html1);
+        assertTrue(content1.contains("Sequential content 1"), "Should contain content");
+
+        File html2 = new File(outputDir, "doc2.html");
+        assertTrue(html2.exists());
+        String content2 = loadFile(html2);
+        assertTrue(content2.contains("Sequential content 2"), "Should contain content");
     }
 }
