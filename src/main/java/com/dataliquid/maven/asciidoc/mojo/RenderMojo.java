@@ -14,6 +14,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.asciidoctor.Attributes;
+import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.Options;
 import org.asciidoctor.OptionsBuilder;
 import org.asciidoctor.SafeMode;
@@ -205,8 +206,12 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             allAttributes.put("diagram-cachedir", new File(workDirectory, "diagram-cache").getAbsolutePath());
         }
 
+        AttributesBuilder attrBuilder = Attributes.builder();
+        for (Map.Entry<String, Object> entry : allAttributes.entrySet()) {
+            attrBuilder.attribute(entry.getKey(), entry.getValue());
+        }
         // Enable AsciidoctorJ's built-in front matter handling
-        Attributes documentAttributes = Attributes.builder().attributes(allAttributes).skipFrontMatter(true).build();
+        Attributes documentAttributes = attrBuilder.skipFrontMatter(true).build();
 
         OptionsBuilder optionsBuilder = Options
                 .builder()
@@ -323,7 +328,11 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             allAttributes.put("diagram-cachedir", new File(workDirectory, "diagram-cache").getAbsolutePath());
         }
 
-        Attributes documentAttributes = Attributes.builder().attributes(allAttributes).skipFrontMatter(true).build();
+        AttributesBuilder attrBuilder2 = Attributes.builder();
+        for (Map.Entry<String, Object> entry : allAttributes.entrySet()) {
+            attrBuilder2.attribute(entry.getKey(), entry.getValue());
+        }
+        Attributes documentAttributes = attrBuilder2.skipFrontMatter(true).build();
 
         Options options = Options.builder().safe(getSafeMode()).attributes(documentAttributes).build();
 
