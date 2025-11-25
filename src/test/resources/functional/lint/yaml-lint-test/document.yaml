@@ -1,0 +1,38 @@
+title: API Documentation
+author: Test Author
+sections:
+  - name: Introduction
+    content: !asciidoc |
+      = Getting Started
+      :author: Test Author
+      :doctype: article
+
+      This is a simple introduction to our API.
+
+      == Overview
+
+      Our API provides the following features:
+
+      * Feature 1
+      * Feature 2
+      * Feature 3
+
+  - name: Authentication
+    content: !asciidoc |
+      = Authentication Guide
+      :author: Security Team
+
+      You need to authenticate using OAuth 2.0.
+
+      == Getting Tokens
+
+      Request tokens from our endpoint.
+
+appendix:
+  glossary: !asciidoc |
+    = Glossary
+    :author: Documentation Team
+
+    API:: Application Programming Interface
+    OAuth:: Open Authorization
+    REST:: Representational State Transfer

@@ -746,4 +746,75 @@ class RenderMojoTest extends AbstractMojoTest<RenderMojo> {
             }
         }
     }
+
+    @Test
+    void shouldProcessYamlFileWithAsciiDocTags() throws Exception {
+        // Given
+        File testSourceDir = new File(getClass().getResource("/functional/render/yaml-asciidoc-test").toURI());
+        setField(mojo, "sourceDirectory", testSourceDir);
+
+        // Include both .adoc and .yaml files
+        String[] includes = new String[] { "**/*.adoc", "**/*.yaml", "**/*.yml" };
+        setField(mojo, "includes", includes);
+
+        String expectedOutput = loadTestResource("/functional/render/yaml-asciidoc-test/expected.yaml");
+
+        // When
+        mojo.execute();
+
+        // Then
+        File generatedFile = new File(outputDir, "input.yaml");
+        assertTrue(generatedFile.exists(), "Output file should be generated for input.yaml");
+
+        String actualOutput = loadFile(generatedFile);
+        assertEquals(expectedOutput, actualOutput, "Generated output should match expected YAML");
+    }
+
+    @Test
+    void shouldProcessYamlFileWithUnknownTags() throws Exception {
+        // given
+        File testSourceDir = new File(getClass().getResource("/functional/render/yaml-unknown-tags-test").toURI());
+        setField(mojo, "sourceDirectory", testSourceDir);
+
+        String[] includes = new String[] { "**/*.yaml" };
+        setField(mojo, "includes", includes);
+
+        String expectedOutput = loadTestResource("/functional/render/yaml-unknown-tags-test/expected.yaml");
+
+        // when
+        mojo.execute();
+
+        // then
+        File generatedFile = new File(outputDir, "input.yaml");
+        assertTrue(generatedFile.exists(), "Output file should be generated");
+
+        String actualOutput = loadFile(generatedFile);
+        assertEquals(expectedOutput, actualOutput, "Generated output should preserve unknown tags");
+    }
+
+    @Test
+    void shouldProcessYamlFileWithTagMapping() throws Exception {
+        // given
+        File testSourceDir = new File(getClass().getResource("/functional/render/yaml-tag-mapping-test").toURI());
+        setField(mojo, "sourceDirectory", testSourceDir);
+
+        Map<String, String> mappings = new HashMap<>();
+        mappings.put("asciidoc", "html");
+        setField(mojo, "yamlTagMappings", mappings);
+
+        String[] includes = new String[] { "**/*.yaml" };
+        setField(mojo, "includes", includes);
+
+        String expectedOutput = loadTestResource("/functional/render/yaml-tag-mapping-test/expected.yaml");
+
+        // when
+        mojo.execute();
+
+        // then
+        File generatedFile = new File(outputDir, "input.yaml");
+        assertTrue(generatedFile.exists(), "Output file should be generated");
+
+        String actualOutput = loadFile(generatedFile);
+        assertEquals(expectedOutput, actualOutput, "Generated output should map tags");
+    }
 }

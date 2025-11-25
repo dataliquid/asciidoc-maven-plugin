@@ -1,0 +1,7 @@
+document:
+  metadata:
+    attributes:
+      - name: doctype
+        required: false
+        severity: info
+        maxLength: 50

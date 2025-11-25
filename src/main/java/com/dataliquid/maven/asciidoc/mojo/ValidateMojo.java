@@ -148,7 +148,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         };
     }
 
-    private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException {
+    private Map<String, Object> collectAllMetadata(Path adocFile) throws IOException, MojoExecutionException {
         Map<String, Object> metadata = new HashMap<>();
 
         String content = Files.readString(adocFile);
@@ -167,7 +167,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         }
         Attributes documentAttributes = attrBuilder.skipFrontMatter(true).build();
 
-        Options options = Options.builder().safe(SafeMode.UNSAFE).attributes(documentAttributes).build();
+        Options options = Options.builder().safe(getSafeMode()).attributes(documentAttributes).build();
 
         Document document = getAsciidoctor().load(content, options);
 

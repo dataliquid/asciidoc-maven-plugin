@@ -1,0 +1,5 @@
+template: !html:template "<div class=\"wrapper\"><p>Content</p></div>"
+content: !asciidoc |
+  == Test Document
+
+  This is a test.
