@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,10 +25,9 @@ import com.dataliquid.maven.asciidoc.model.ValidationError;
 import com.dataliquid.maven.asciidoc.util.MetadataCollector;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 
 @Mojo(name = "validate")
 public class ValidateMojo extends AbstractAsciiDocMojo {
@@ -118,31 +116,31 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         }
     }
 
-    private JsonSchema loadSchema(File schemaFileToLoad) throws IOException, MojoExecutionException {
+    private Schema loadSchema(File schemaFileToLoad) throws IOException, MojoExecutionException {
         try {
             // Determine schema version
-            SpecVersion.VersionFlag versionFlag = getSchemaVersion();
+            SpecificationVersion specVersion = getSchemaVersion();
 
-            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(versionFlag);
+            SchemaRegistry registry = SchemaRegistry.withDefaultDialect(specVersion);
 
             // Load schema from file
             String schemaContent = Files.readString(schemaFileToLoad.toPath());
             JsonNode schemaNode = objectMapper.readTree(schemaContent);
 
-            return factory.getSchema(schemaNode);
+            return registry.getSchema(schemaNode);
 
         } catch (Exception e) {
             throw new MojoExecutionException("Failed to load schema from: " + schemaFileToLoad, e);
         }
     }
 
-    private SpecVersion.VersionFlag getSchemaVersion() throws MojoExecutionException {
+    private SpecificationVersion getSchemaVersion() throws MojoExecutionException {
         return switch (schemaVersion.toUpperCase()) {
-        case "V4" -> SpecVersion.VersionFlag.V4;
-        case "V6" -> SpecVersion.VersionFlag.V6;
-        case "V7" -> SpecVersion.VersionFlag.V7;
-        case "V201909" -> SpecVersion.VersionFlag.V201909;
-        case "V202012" -> SpecVersion.VersionFlag.V202012;
+        case "V4" -> SpecificationVersion.DRAFT_4;
+        case "V6" -> SpecificationVersion.DRAFT_6;
+        case "V7" -> SpecificationVersion.DRAFT_7;
+        case "V201909" -> SpecificationVersion.DRAFT_2019_09;
+        case "V202012" -> SpecificationVersion.DRAFT_2020_12;
         default -> throw new MojoExecutionException(
                 "Unsupported schema version: " + schemaVersion + ". Supported versions: V4, V6, V7, V201909, V202012");
         };
@@ -224,21 +222,21 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
         try {
             // Load schema
-            JsonSchema schema = loadSchema(schemaFile);
+            Schema schema = loadSchema(schemaFile);
 
             // Convert metadata to JSON
             Map<String, Object> metadataJson = metadataCollector.toJson();
             JsonNode metadataNode = objectMapper.valueToTree(metadataJson);
 
-            // Validate against schema
-            Set<ValidationMessage> validationMessages = schema.validate(metadataNode);
+            // Validate against schema - returns List<Error> in 2.0.0
+            List<com.networknt.schema.Error> validationErrors = schema.validate(metadataNode);
 
-            if (!validationMessages.isEmpty()) {
-                getLog().info("Validation found " + validationMessages.size() + " issues");
-                for (ValidationMessage validationMessage : validationMessages) {
+            if (!validationErrors.isEmpty()) {
+                getLog().info("Validation found " + validationErrors.size() + " issues");
+                for (com.networknt.schema.Error validationError : validationErrors) {
                     errors
                             .add(new ValidationError(Paths.get("VALIDATION"), "SCHEMA_VALIDATION",
-                                    validationMessage.getMessage()));
+                                    validationError.getMessage()));
                 }
             }
 
