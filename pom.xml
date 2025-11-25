@@ -164,7 +164,7 @@
         <dependency>
             <groupId>com.dataliquid</groupId>
             <artifactId>asciidoc-linter</artifactId>
-            <version>0.5.0</version>
+            <version>0.6.0</version>
         </dependency>
         
         <dependency>

@@ -211,22 +211,6 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
                 [INFO] Linting: %s
                 [INFO] %s:
                 [INFO]\s
-                [ERROR] [ERROR]: Missing required attribute 'description' [metadata.required]
-                [ERROR]   File: %s:4:1
-                [ERROR]   Expected: Attribute must be present
-                [ERROR]\s
-                [ERROR]    2 | :version: 1.0.0
-                [ERROR]    3 | :keywords: API, REST, Documentation
-                [ERROR]    4 | «:description: value»
-                [ERROR]    5 |\s
-                [ERROR]    6 | == Overview
-                [ERROR]    7 |\s
-                [ERROR]\s
-                [ERROR] Suggested fix:
-                [ERROR]   Add required attribute to document header
-                [ERROR]   :description: value
-                [ERROR]   Required attributes must be defined in the document header
-                [ERROR]\s
                 [ERROR] [ERROR]: Missing required attribute 'author' [metadata.required]
                 [ERROR]   File: %s:4:1
                 [ERROR]   Expected: Attribute must be present
@@ -243,6 +227,22 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
                 [ERROR]   :author: value
                 [ERROR]   Required attributes must be defined in the document header
                 [ERROR]\s
+                [ERROR] [ERROR]: Missing required attribute 'description' [metadata.required]
+                [ERROR]   File: %s:4:1
+                [ERROR]   Expected: Attribute must be present
+                [ERROR]\s
+                [ERROR]    2 | :version: 1.0.0
+                [ERROR]    3 | :keywords: API, REST, Documentation
+                [ERROR]    4 | «:description: value»
+                [ERROR]    5 |\s
+                [ERROR]    6 | == Overview
+                [ERROR]    7 |\s
+                [ERROR]\s
+                [ERROR] Suggested fix:
+                [ERROR]   Add required attribute to document header
+                [ERROR]   :description: value
+                [ERROR]   Required attributes must be defined in the document header
+                [ERROR]\s
                 [ERROR]\s
                 [ERROR]\s
                 [ERROR] +----------------------------------------------------------------------------------------------------------------------+
@@ -256,7 +256,7 @@ class LinterMojoTest extends AbstractMojoTest<LinterMojo> {
                 [ERROR]   Info:     0
                 [ERROR]\s
                 [ERROR]   Most common issues:
-                [ERROR]   💡   💡   - Missing required attribute 'description' (2 occurrences)
+                [ERROR]   💡   💡   - Missing required attribute 'author' (2 occurrences)
                 [ERROR]\s
                 [ERROR]\s
                 [ERROR] Summary: 2 errors, 0 warnings, 0 info messages
