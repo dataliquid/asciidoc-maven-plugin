@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.codehaus.plexus.util.DirectoryScanner;
 
+@SuppressWarnings("PMD.UseVarargs")
 public class FilePatternMatcher {
 
     private final File baseDirectory;

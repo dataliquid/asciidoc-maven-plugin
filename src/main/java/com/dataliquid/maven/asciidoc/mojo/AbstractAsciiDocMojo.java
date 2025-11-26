@@ -14,6 +14,8 @@ import org.apache.maven.project.MavenProject;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.SafeMode;
 
+import java.util.Locale;
+
 import com.dataliquid.maven.asciidoc.parser.FrontMatterParser;
 import com.dataliquid.maven.asciidoc.util.FilePatternMatcher;
 
@@ -21,6 +23,7 @@ import com.dataliquid.maven.asciidoc.util.FilePatternMatcher;
  * Abstract base class for all AsciiDoc-related Mojos. Provides common
  * functionality following DRY principles.
  */
+@SuppressWarnings("PMD.GuardLogStatement")
 public abstract class AbstractAsciiDocMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -134,7 +137,7 @@ public abstract class AbstractAsciiDocMojo extends AbstractMojo {
      */
     protected SafeMode getSafeMode() throws MojoExecutionException {
         try {
-            return SafeMode.valueOf(safeMode.toUpperCase());
+            return SafeMode.valueOf(safeMode.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new MojoExecutionException(
                     "Invalid safeMode value: " + safeMode + ". Valid values are: UNSAFE, SAFE, SERVER, SECURE", e);

@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.io.InputStream;
 import com.dataliquid.maven.asciidoc.util.IndentationUtils;
 
+@SuppressWarnings("PMD.GuardLogStatement")
 public class StringTemplateProcessor {
     private final Log log;
     private final String baseDir;
@@ -80,8 +81,7 @@ public class StringTemplateProcessor {
                 this.templateGroup.delimiterStopChar = '$';
             } else {
                 // For individual template files from classpath, need to read and convert
-                try {
-                    InputStream is = getClass().getResourceAsStream("/" + templatePath);
+                try (InputStream is = getClass().getResourceAsStream("/" + templatePath)) {
                     if (is == null) {
                         throw new IllegalArgumentException("Template not found in classpath: " + templatePath);
                     }
@@ -126,7 +126,7 @@ public class StringTemplateProcessor {
     }
 
     public String process(String templateName, DocumentContext context) {
-        if (templateName == null || templateName.trim().isEmpty()) {
+        if (templateName == null || templateName.isBlank()) {
             throw new IllegalArgumentException("Template name cannot be null or empty");
         }
 
@@ -134,7 +134,6 @@ public class StringTemplateProcessor {
 
         try {
             ST template;
-            String templateContent = null;
 
             if (templateGroup != null) {
                 // Get template from group - always use "partial" as the template name
@@ -142,7 +141,7 @@ public class StringTemplateProcessor {
             } else {
                 // Load template from file
                 Path templatePath = Paths.get(baseDir, templateName);
-                templateContent = Files.readString(templatePath);
+                String templateContent = Files.readString(templatePath);
                 // Apply smart indentation removal that preserves relative indentation
                 String processedContent = IndentationUtils.removeCommonIndentation(templateContent);
                 template = new ST(processedContent, '$', '$');
@@ -177,7 +176,7 @@ public class StringTemplateProcessor {
     }
 
     public String processInline(String templateContent, DocumentContext context) {
-        if (templateContent == null || templateContent.trim().isEmpty()) {
+        if (templateContent == null || templateContent.isBlank()) {
             throw new IllegalArgumentException("Template content cannot be null or empty");
         }
 

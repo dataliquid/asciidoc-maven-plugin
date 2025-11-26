@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+@SuppressWarnings("PMD.GuardLogStatement")
 public class FrontMatterParser {
 
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());

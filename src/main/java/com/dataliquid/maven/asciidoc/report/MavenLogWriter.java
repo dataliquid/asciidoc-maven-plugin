@@ -14,6 +14,7 @@ import com.dataliquid.asciidoc.linter.config.common.Severity;
  * ConsoleFormatter and routes it appropriately to Maven's log levels while
  * preserving formatting like colors and underlines.
  */
+@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 public class MavenLogWriter extends PrintWriter {
 
     private static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[[;\\d]*m");

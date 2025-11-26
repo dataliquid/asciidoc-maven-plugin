@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * Custom YAML constructor for handling !asciidoc tags
  */
+@SuppressWarnings("PMD.UnusedPrivateField")
 public class AsciiDocTag extends Constructor {
 
     public static final Tag ASCIIDOC_TAG = new Tag("!asciidoc");

@@ -3,6 +3,7 @@ package com.dataliquid.maven.asciidoc.util;
 /**
  * Utility class for handling indentation in templates and error messages.
  */
+@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 public class IndentationUtils {
 
     /**
@@ -24,7 +25,7 @@ public class IndentationUtils {
         // Find the minimum indentation (excluding empty lines)
         int minIndent = Integer.MAX_VALUE;
         for (String line : lines) {
-            if (!line.trim().isEmpty()) {
+            if (!line.isBlank()) {
                 int indent = 0;
                 for (char c : line.toCharArray()) {
                     if (c == ' ') {
@@ -49,7 +50,7 @@ public class IndentationUtils {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (!line.trim().isEmpty()) {
+            if (!line.isBlank()) {
                 // Remove minIndent worth of spaces/tabs
                 int removed = 0;
                 int j = 0;

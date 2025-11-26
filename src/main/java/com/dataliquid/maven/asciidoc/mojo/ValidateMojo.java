@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
 
 @Mojo(name = "validate")
+@SuppressWarnings({ "PMD.GuardLogStatement", "PMD.UseConcurrentHashMap" })
 public class ValidateMojo extends AbstractAsciiDocMojo {
 
     @Parameter(property = "asciidoc.schemaVersion", defaultValue = "V7")
@@ -135,7 +137,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
     }
 
     private SpecificationVersion getSchemaVersion() throws MojoExecutionException {
-        return switch (schemaVersion.toUpperCase()) {
+        return switch (schemaVersion.toUpperCase(Locale.ROOT)) {
         case "V4" -> SpecificationVersion.DRAFT_4;
         case "V6" -> SpecificationVersion.DRAFT_6;
         case "V7" -> SpecificationVersion.DRAFT_7;
@@ -175,7 +177,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
         // Add front matter (if exists)
         String frontMatter = (String) document.getAttributes().get("front-matter");
-        if (frontMatter != null && !frontMatter.trim().isEmpty()) {
+        if (frontMatter != null && !frontMatter.isBlank()) {
             Map<String, Object> frontMatterData = getFrontMatterParser().parse(frontMatter);
             metadata.put("frontmatter", frontMatterData);
         }
@@ -185,8 +187,8 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
             Map<String, Object> attributes = new HashMap<>();
             document.getAttributes().forEach((key, value) -> {
                 // Filter out internal attributes
-                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !key.equals("docfile")
-                        && !key.equals("docdir") && !key.equals("front-matter") && !key.equals("filetype")) {
+                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !"docfile".equals(key)
+                        && !"docdir".equals(key) && !"front-matter".equals(key) && !"filetype".equals(key)) {
                     attributes.put(key, value);
                 }
             });

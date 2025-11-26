@@ -22,6 +22,7 @@ import com.dataliquid.asciidoc.linter.validator.ValidationResult;
  * <li>Avoids reflection and internal API dependencies</li>
  * </ul>
  */
+@SuppressWarnings("PMD.CloseResource")
 public class MavenReportFormatter implements ReportFormatter {
 
     private final Log mavenLog;

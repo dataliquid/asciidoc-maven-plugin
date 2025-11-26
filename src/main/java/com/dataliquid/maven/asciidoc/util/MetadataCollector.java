@@ -12,6 +12,7 @@ import com.dataliquid.maven.asciidoc.model.DocumentMetadata;
  * Collects metadata from AsciiDoc documents during processing. Provides a
  * unified JSON structure for validation against custom schemas.
  */
+@SuppressWarnings("PMD.UseConcurrentHashMap")
 public class MetadataCollector {
 
     private final List<DocumentMetadata> documents = new ArrayList<>();

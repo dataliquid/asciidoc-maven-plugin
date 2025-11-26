@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -32,6 +33,7 @@ import org.asciidoctor.Options;
  * Goal to lint AsciiDoc files using asciidoc-linter.
  */
 @Mojo(name = "lint")
+@SuppressWarnings({ "PMD.GuardLogStatement", "PMD.AvoidDuplicateLiterals" })
 public class LinterMojo extends AbstractAsciiDocMojo {
 
     @Parameter(property = "asciidoc.linter.ruleFile", required = true)
@@ -89,7 +91,7 @@ public class LinterMojo extends AbstractAsciiDocMojo {
 
             // Lint each file
             for (Path file : adocFiles) {
-                String fileName = file.getFileName().toString().toLowerCase();
+                String fileName = file.getFileName().toString().toLowerCase(Locale.ROOT);
 
                 if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
                     // Process YAML files with embedded AsciiDoc
@@ -122,7 +124,7 @@ public class LinterMojo extends AbstractAsciiDocMojo {
     private OutputConfiguration createOutputConfiguration() throws IOException {
         OutputConfigurationLoader outputLoader = new OutputConfigurationLoader();
 
-        OutputFormat format = OutputFormat.valueOf(consoleOutputFormat.toUpperCase());
+        OutputFormat format = OutputFormat.valueOf(consoleOutputFormat.toUpperCase(Locale.ROOT));
         OutputConfiguration baseConfig = outputLoader.loadPredefinedConfiguration(format);
         SummaryConfig summaryConfig = baseConfig.getSummary();
         boolean showLineNumbers = baseConfig.getDisplay().isShowLineNumbers();
