@@ -12,23 +12,22 @@ import java.util.Properties;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 
+@SuppressWarnings("PMD.GuardLogStatement")
 public class IncrementalBuildManager {
 
     private static final String HASH_FILE = ".asciidoc.hashes";
     private static final String SHA_256_ALGORITHM = "SHA-256";
     private final File workDirectory;
     private final Properties hashCache;
-    private final MessageDigest digest;
     private final Log log;
 
-    public IncrementalBuildManager(File workDirectory) throws NoSuchAlgorithmException {
+    public IncrementalBuildManager(File workDirectory) {
         this(workDirectory, new SystemStreamLog());
     }
 
-    public IncrementalBuildManager(File workDirectory, Log log) throws NoSuchAlgorithmException {
+    public IncrementalBuildManager(File workDirectory, Log log) {
         this.workDirectory = workDirectory;
         this.hashCache = new Properties();
-        this.digest = MessageDigest.getInstance(SHA_256_ALGORITHM);
         this.log = log;
         loadHashCache();
     }
@@ -82,10 +81,12 @@ public class IncrementalBuildManager {
 
     private String calculateFileHash(Path file) {
         try {
+            MessageDigest digest = MessageDigest.getInstance(SHA_256_ALGORITHM);
             byte[] fileContent = Files.readAllBytes(file);
             byte[] hashBytes = digest.digest(fileContent);
             return bytesToHex(hashBytes);
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
+            log.debug("Failed to calculate hash: " + e.getMessage());
             return null;
         }
     }

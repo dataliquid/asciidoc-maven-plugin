@@ -1,13 +1,14 @@
 package com.dataliquid.maven.asciidoc.mojo;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -26,6 +27,7 @@ import com.dataliquid.maven.asciidoc.template.StringTemplateProcessor;
 import com.dataliquid.maven.asciidoc.yaml.YamlAsciiDocProcessor;
 
 @Mojo(name = "render")
+@SuppressWarnings({ "PMD.GuardLogStatement", "PMD.UseConcurrentHashMap" })
 public class RenderMojo extends AbstractAsciiDocMojo {
 
     @Parameter(property = "asciidoc.workDirectory", defaultValue = "${project.build.directory}/asciidoc-work")
@@ -145,7 +147,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         try {
             getLog().info("Processing: " + file);
 
-            String fileName = file.getFileName().toString().toLowerCase();
+            String fileName = file.getFileName().toString().toLowerCase(Locale.ROOT);
             String processedContent;
 
             // Check if this is a YAML file
@@ -232,7 +234,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         // Convert to HTML using options with custom attributes
         String generatedHtml = getAsciidoctor().convert(content, options);
 
-        if (generatedHtml == null || generatedHtml.trim().isEmpty()) {
+        if (generatedHtml == null || generatedHtml.isBlank()) {
             getLog().error("Failed to convert " + adocFile + " - AsciidoctorJ returned null or empty content");
             return null;
         }
@@ -294,7 +296,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
     }
 
     private String determineOutputFileName(Path inputFile, Path relativePath) {
-        String fileName = inputFile.getFileName().toString().toLowerCase();
+        String fileName = inputFile.getFileName().toString().toLowerCase(Locale.ROOT);
 
         // For YAML files, keep the original extension
         if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
@@ -345,7 +347,7 @@ public class RenderMojo extends AbstractAsciiDocMojo {
         // Add front matter (if exists)
         if (document != null) {
             String frontMatter = (String) document.getAttributes().get("front-matter");
-            if (frontMatter != null && !frontMatter.trim().isEmpty()) {
+            if (frontMatter != null && !frontMatter.isBlank()) {
                 Map<String, Object> frontMatterData = getFrontMatterParser().parse(frontMatter);
                 metadata.put("frontmatter", frontMatterData);
             }
@@ -354,8 +356,8 @@ public class RenderMojo extends AbstractAsciiDocMojo {
             Map<String, Object> attributes = new HashMap<>();
             document.getAttributes().forEach((key, value) -> {
                 // Filter out internal attributes
-                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !key.equals("docfile")
-                        && !key.equals("docdir") && !key.equals("front-matter") && !key.equals("filetype")) {
+                if (!key.startsWith("asciidoctor-") && !key.startsWith("backend-") && !"docfile".equals(key)
+                        && !"docdir".equals(key) && !"front-matter".equals(key) && !"filetype".equals(key)) {
                     attributes.put(key, value);
                 }
             });

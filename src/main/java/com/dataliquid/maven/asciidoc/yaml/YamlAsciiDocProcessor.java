@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * Processes YAML files containing !asciidoc tags
  */
+@SuppressWarnings("PMD.GuardLogStatement")
 public class YamlAsciiDocProcessor {
 
     private final Asciidoctor asciidoctor;
@@ -179,8 +180,7 @@ public class YamlAsciiDocProcessor {
             }
         } else if (node instanceof List) {
             List<Object> list = (List<Object>) node;
-            for (int i = 0; i < list.size(); i++) {
-                Object item = list.get(i);
+            for (Object item : list) {
                 if (item instanceof AsciiDocTag.AsciiDocContent) {
                     AsciiDocTag.AsciiDocContent asciiDocContent = (AsciiDocTag.AsciiDocContent) item;
                     String rendered = renderAsciiDoc(asciiDocContent.getContent());

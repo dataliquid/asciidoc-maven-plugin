@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
  * Detailed error listener for StringTemplate that provides enhanced error
  * diagnostics with context lines and column indicators.
  */
+@SuppressWarnings({ "PMD.GuardLogStatement", "PMD.EmptyCatchBlock", "PMD.AvoidInstantiatingObjectsInLoops" })
 public class DetailedSTErrorListener implements STErrorListener {
     private final String templateSource;
     private final String templateName;
@@ -142,7 +143,7 @@ public class DetailedSTErrorListener implements STErrorListener {
                         StringBuilder pointer = new StringBuilder();
                         // Add spaces for the line number prefix
                         for (int j = 0; j < prefixLength; j++) {
-                            pointer.append(" ");
+                            pointer.append(' ');
                         }
 
                         // Add spaces up to the error position in the actual line content
@@ -150,9 +151,9 @@ public class DetailedSTErrorListener implements STErrorListener {
                         for (int j = 0; j < charPos - 1; j++) {
                             if (j < lines[i].length() && lines[i].charAt(j) == '\t') {
                                 // Preserve tabs for proper alignment
-                                pointer.append("\t");
+                                pointer.append('\t');
                             } else {
-                                pointer.append(" ");
+                                pointer.append(' ');
                             }
                         }
                         pointer.append("^ Error here");
