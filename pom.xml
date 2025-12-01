@@ -33,7 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.version>3.9.11</maven.version>
         <asciidoctorj.version>3.0.1</asciidoctorj.version>
-        <asciidoctorj.diagram.version>3.0.1</asciidoctorj.diagram.version>
+        <asciidoctorj.diagram.version>3.1.0</asciidoctorj.diagram.version>
         <asciidoctorj.diagram.plantuml.version>1.2025.3</asciidoctorj.diagram.plantuml.version>
         <asciidoctorj.diagram.ditaamini.version>1.0.3</asciidoctorj.diagram.ditaamini.version>
         <jackson.version>2.20.0</jackson.version>
