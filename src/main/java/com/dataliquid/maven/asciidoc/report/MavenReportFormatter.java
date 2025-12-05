@@ -22,7 +22,6 @@ import com.dataliquid.asciidoc.linter.validator.ValidationResult;
  * <li>Avoids reflection and internal API dependencies</li>
  * </ul>
  */
-@SuppressWarnings("PMD.CloseResource")
 public class MavenReportFormatter implements ReportFormatter {
 
     private final Log mavenLog;
@@ -53,14 +52,14 @@ public class MavenReportFormatter implements ReportFormatter {
     public void format(ValidationResult result) {
         // Create a MavenLogWriter that bridges to Maven's logging
         boolean stripAnsi = !config.getDisplay().isUseColors() || !MavenLogWriter.supportsAnsiColors();
-        MavenLogWriter mavenWriter = new MavenLogWriter(mavenLog, stripAnsi);
+        try (MavenLogWriter mavenWriter = new MavenLogWriter(mavenLog, stripAnsi)) {
+            // Delegate all formatting to the native ConsoleFormatter
+            // This preserves all features: underlines, context, suggestions, summary
+            delegate.format(result, mavenWriter);
 
-        // Delegate all formatting to the native ConsoleFormatter
-        // This preserves all features: underlines, context, suggestions, summary
-        delegate.format(result, mavenWriter);
-
-        // Ensure all buffered content is written
-        mavenWriter.flush();
+            // Ensure all buffered content is written
+            mavenWriter.flush();
+        }
     }
 
     /**

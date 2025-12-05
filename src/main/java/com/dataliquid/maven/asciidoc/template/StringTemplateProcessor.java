@@ -9,10 +9,11 @@ import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.InputStream;
 import com.dataliquid.maven.asciidoc.util.IndentationUtils;
 
 @SuppressWarnings("PMD.GuardLogStatement")
@@ -85,7 +86,7 @@ public class StringTemplateProcessor {
                     if (is == null) {
                         throw new IllegalArgumentException("Template not found in classpath: " + templatePath);
                     }
-                    String content = new String(is.readAllBytes());
+                    String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
                     // Apply smart indentation removal that preserves relative indentation
                     String processedContent = IndentationUtils.removeCommonIndentation(content);
 
