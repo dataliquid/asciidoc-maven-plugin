@@ -129,24 +129,14 @@ public class LinterMojo extends AbstractAsciiDocMojo {
         SummaryConfig summaryConfig = baseConfig.getSummary();
         boolean showLineNumbers = baseConfig.getDisplay().isShowLineNumbers();
 
-        return OutputConfiguration
-                .builder()
-                .display(DisplayConfig
-                        .builder()
-                        .contextLines(contextLines)
-                        .highlightStyle(highlightErrors ? HighlightStyle.UNDERLINE : HighlightStyle.NONE)
-                        .useColors(useColors && MavenLogWriter.supportsAnsiColors())
-                        .showLineNumbers(showLineNumbers)
-                        .showHeader(false)
-                        .build())
-                .suggestions(SuggestionsConfig
-                        .builder()
-                        .enabled(showSuggestions)
-                        .maxPerError(maxSuggestionsPerError)
-                        .showExamples(showExamples)
-                        .build())
-                .summary(summaryConfig)
-                .build();
+        return new OutputConfiguration(null, // format - use default
+                new DisplayConfig(contextLines, highlightErrors ? HighlightStyle.UNDERLINE : HighlightStyle.NONE,
+                        useColors && MavenLogWriter.supportsAnsiColors(), showLineNumbers, null, // maxLineWidth - use
+                                                                                                 // default
+                        false // showHeader
+                ), new SuggestionsConfig(showSuggestions, maxSuggestionsPerError, showExamples), null, // errorGrouping
+                                                                                                       // - use default
+                summaryConfig);
     }
 
     /**
