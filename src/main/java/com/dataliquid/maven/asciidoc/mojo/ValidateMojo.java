@@ -24,9 +24,10 @@ import org.asciidoctor.ast.Document;
 
 import com.dataliquid.maven.asciidoc.model.ValidationError;
 import com.dataliquid.maven.asciidoc.util.MetadataCollector;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.Schema;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
 
@@ -52,7 +53,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
     @Parameter(property = "asciidoc.metadataExportFile")
     private File metadataExportFile;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper = new JsonMapper();
     private final MetadataCollector metadataCollector = new MetadataCollector();
 
     @Override
@@ -77,9 +78,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
                 // Log collected metadata in debug mode
                 if (getLog().isDebugEnabled()) {
                     try {
-                        String prettyJson = objectMapper
-                                .writerWithDefaultPrettyPrinter()
-                                .writeValueAsString(allMetadata);
+                        String prettyJson = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(allMetadata);
                         getLog().debug("Collected metadata for " + relativePath + ":\n" + prettyJson);
                     } catch (Exception e) {
                         getLog().debug("Failed to serialize metadata for logging: " + e.getMessage());
@@ -127,7 +126,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
             // Load schema from file
             String schemaContent = Files.readString(schemaFileToLoad.toPath());
-            JsonNode schemaNode = objectMapper.readTree(schemaContent);
+            JsonNode schemaNode = jsonMapper.readTree(schemaContent);
 
             return registry.getSchema(schemaNode);
 
@@ -228,7 +227,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
 
             // Convert metadata to JSON
             Map<String, Object> metadataJson = metadataCollector.toJson();
-            JsonNode metadataNode = objectMapper.valueToTree(metadataJson);
+            JsonNode metadataNode = jsonMapper.valueToTree(metadataJson);
 
             // Validate against schema - returns List<Error> in 2.0.0
             List<com.networknt.schema.Error> validationErrors = schema.validate(metadataNode);
@@ -263,7 +262,7 @@ public class ValidateMojo extends AbstractAsciiDocMojo {
         Map<String, Object> metadataJson = metadataCollector.toJson();
 
         // Write pretty-printed JSON to file
-        String jsonOutput = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metadataJson);
+        String jsonOutput = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metadataJson);
 
         Files.writeString(metadataExportFile.toPath(), jsonOutput);
 

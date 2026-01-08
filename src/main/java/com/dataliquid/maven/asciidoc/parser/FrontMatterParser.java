@@ -6,15 +6,15 @@ import java.util.Map;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @SuppressWarnings("PMD.GuardLogStatement")
 public class FrontMatterParser {
 
-    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-    private final ObjectMapper jsonMapper = new ObjectMapper();
+    private final YAMLMapper yamlMapper = new YAMLMapper();
+    private final JsonMapper jsonMapper = new JsonMapper();
     private final Log log;
 
     public FrontMatterParser() {
