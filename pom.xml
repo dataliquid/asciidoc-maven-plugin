@@ -36,7 +36,7 @@
         <asciidoctorj.diagram.version>3.1.0</asciidoctorj.diagram.version>
         <asciidoctorj.diagram.plantuml.version>1.2025.3</asciidoctorj.diagram.plantuml.version>
         <asciidoctorj.diagram.ditaamini.version>1.0.3</asciidoctorj.diagram.ditaamini.version>
-        <jackson.version>3.0.3</jackson.version>
+        <jackson.version>3.0.4</jackson.version>
         <maven.plugin.tools.version>3.15.2</maven.plugin.tools.version>
     </properties>
 
